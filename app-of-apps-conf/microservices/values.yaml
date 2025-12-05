@@ -11,7 +11,7 @@ envs:
     enabled: true
     common_service: true
     service:  
-       - backend-service
+       # - backend-service
 common_services:
   # - test-svc
 
