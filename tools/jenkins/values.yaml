@@ -47,12 +47,11 @@ jenkins:
     # ----------------------------
     resources:
       requests:
-        memory: "1Gi"
-        cpu: "300m"
-      limits:
         memory: "3Gi"
         cpu: "500m"
-
+      limits:
+        memory: "6Gi"
+        cpu: "1500m"
     # ----------------------------
     # OPTIMIZED INIT CONTAINER RESOURCES
     # ----------------------------
