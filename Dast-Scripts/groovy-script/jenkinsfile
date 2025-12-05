@@ -11,7 +11,7 @@ pipeline {
             spec:
                 containers:
                   - name: build
-                    image: fadifarid/redhat-python 
+                    image: fadifarid/redhat-python
                     command: [ "sh", "-c", "sleep infinity" ]
                     tty: true
                     securityContext:
