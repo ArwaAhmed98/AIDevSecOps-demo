@@ -1,0 +1,36 @@
+replicaCount: 1
+namespace: demo
+release: frontend-app
+
+name: frontend
+image:
+  repository: curlimages/curl
+  tag: "7.88.1"
+  pullPolicy: IfNotPresent
+service:
+  type: NodePort
+  port: 80
+  targetPort: 80
+command:
+  - /bin/sh
+  - -c
+  - |
+    while true; do
+      echo "Requesting backend..."
+      curl http://backend.demo.svc.cluster.local:8080
+      sleep 5
+    done
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
