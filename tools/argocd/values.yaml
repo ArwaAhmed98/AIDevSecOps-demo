@@ -2,7 +2,7 @@ argo-cd:
   global:
     image:
       repository: docker.io/argoproj/argocd
-      tag: v3.1.8
+      tag: v2.6.15
     securityContext:
       runAsUser: 10001
       runAsGroup: 10001
