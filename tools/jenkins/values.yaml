@@ -116,13 +116,14 @@ jenkins:
       limits:
         memory: "2Gi"
         cpu: "400m"
-    initContainers.resources:
-      requests:
-        memory: "1Gi"
-        cpu: "200m"
-      limits:
-        memory: "2Gi"
-        cpu: "400m"
+    initContainers:
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "200m"
+        limits:
+          memory: "2Gi"
+          cpu: "400m"
 
   # Persistent volume settings for Jenkins data
   persistence:
