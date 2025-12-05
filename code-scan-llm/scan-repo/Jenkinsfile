@@ -46,6 +46,7 @@ pipeline {
     stages {
         stage('Install Go and Run Scan') {
             steps {
+                container('go'){
                 dir('code-scan-llm/scan-repo') {
                     sh """
                   
@@ -65,6 +66,7 @@ pipeline {
                         fi
                         go run main.go "${params.REPO_URL}"
                     """
+                    }
                 }
             }
         }
