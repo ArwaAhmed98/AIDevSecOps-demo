@@ -1,5 +1,41 @@
 pipeline {
-    agent any
+    agent {
+    kubernetes {
+      label "go-agent-${env.BUILD_NUMBER}"
+      defaultContainer 'go'
+      yaml """
+        apiVersion: v1
+        kind: Pod
+        metadata:
+            name: dynamic-agent
+            labels:
+                type: go-build
+        spec:
+            serviceAccountName: jenkins
+            restartPolicy: Never
+            containers:
+              - name: go
+                image: golang:1.23-bookworm
+                tty: true
+                command:
+                    - cat
+                resources:
+                    requests:
+                        cpu: "200m"
+                        memory: "512Mi"
+                    limits:
+                        cpu: "1"
+                        memory: "1Gi"
+                volumeMounts:
+                  - name: workspace
+                    mountPath: /home/jenkins/agent
+        volumes:
+          - name: workspace
+            emptyDir: {}
+        """
+            }
+        }
+
     
     parameters {
         string(name: 'REPO_URL', defaultValue: 'https://github.com/user/repo', description: 'GitHub repository URL to scan')
