@@ -124,14 +124,13 @@ jenkins:
     # ----------------------------
     # OPTIMIZED INIT CONTAINER RESOURCES
     # ----------------------------
-    initContainers:
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "50m"
-        limits:
-          memory: "512Mi"
-          cpu: "100m"
+    initContainerResources:
+      requests:
+        memory: "256Mi"
+        cpu: "50m"
+      limits:
+        memory: "512Mi"
+        cpu: "100m"
 
   # Persistent volume settings for Jenkins data
   persistence:
