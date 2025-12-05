@@ -4,7 +4,6 @@ This repository contains a **Helm-based App-of-Apps** structure for deploying:
 
 * ArgoCD Projects
 * Tools (shared cluster components)
-* Services (microservices across multiple namespaces)
 
 The App-of-Apps itself is deployed via **Helm**, which renders ArgoCD `Application` manifests. ArgoCD then recursively deploys all tools and services.
 
