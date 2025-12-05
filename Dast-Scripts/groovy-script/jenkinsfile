@@ -50,7 +50,6 @@ pipeline {
                     sleep 60
                     python3 ${env.WORKSPACE}/Dast-Scripts/Zap-scan.py --repo "$REPONAME" || true
                     python3 ${env.WORKSPACE}/Dast-Scripts/Zap-scan.py --repo "$REPONAME"
-                    pkill -f zap.sh
                     """
                 }
             }
