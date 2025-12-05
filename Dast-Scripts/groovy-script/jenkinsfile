@@ -10,7 +10,7 @@ pipeline {
                 jenkins: slave
             spec:
                 containers:
-                - name: build
+                  - name: build
                     image: fadifarid/my-snapshot:redhat
                     command:
                         - cat
