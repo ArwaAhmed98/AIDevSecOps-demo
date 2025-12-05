@@ -167,7 +167,7 @@ func scanRepo(ctx context.Context, llm llms.Model, repoURL, systemMessage string
 func main() {
 	// Check command-line arguments
 	if len(os.Args) < 2 {
-		log.Fatal("Usage: go run main.go <github-repo-url>")
+		log.Fatal("Usage: go run main.go")
 	}
 
 	// Get the GitHub repository URL
