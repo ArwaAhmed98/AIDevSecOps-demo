@@ -103,10 +103,16 @@ func min(a, b int) int {
 
 // analyzeCode sends the code and system message to the LLM for analysis.
 func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string, outputWriter io.Writer) error {
-	// Check code size and warn if very large (might cause issues)
+	// Check sizes
 	codeSize := len(code)
+	systemMsgSize := len(systemMessage)
+	totalPayloadSize := systemMsgSize + codeSize
+
 	if codeSize > 100000 { // 100KB
 		log.Printf("warning: code file is large (%d bytes), this may cause timeout or payload issues", codeSize)
+	}
+	if totalPayloadSize > 50000 {
+		log.Printf("info: total payload size is %d bytes (system: %d, code: %d)", totalPayloadSize, systemMsgSize, codeSize)
 	}
 
 	content := []llms.MessageContent{
@@ -138,8 +144,21 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 		}
 		attemptCtx, cancel := context.WithTimeout(ctx, timeout)
 
-		// Generate content with streaming
-		_, err := llm.GenerateContent(attemptCtx, content, llms.WithStreamingFunc(streamingFunc))
+		// Try without streaming first on first attempt (more reliable for large payloads)
+		var err error
+		if attempt == 1 && totalPayloadSize > 10000 {
+			// For larger payloads, try without streaming first
+			_, err = llm.GenerateContent(attemptCtx, content)
+			if err != nil && strings.Contains(err.Error(), "invalid character '<'") {
+				// If we get HTML error, try with streaming as fallback
+				cancel()
+				attemptCtx, cancel = context.WithTimeout(ctx, timeout)
+				_, err = llm.GenerateContent(attemptCtx, content, llms.WithStreamingFunc(streamingFunc))
+			}
+		} else {
+			// Generate content with streaming
+			_, err = llm.GenerateContent(attemptCtx, content, llms.WithStreamingFunc(streamingFunc))
+		}
 		cancel()
 
 		if err == nil {
@@ -150,12 +169,27 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 
 		// Don't retry on HTML/JSON parsing errors - these are configuration issues
 		if strings.Contains(err.Error(), "invalid character '<'") {
-			return fmt.Errorf("received HTML response instead of JSON from Ollama server during API call. this usually means: 1) the /api/generate or /api/chat endpoint is not working, 2) server returned an error page, 3) there's a proxy/load balancer issue, 4) request payload too large. code size: %d bytes. original error: %v", codeSize, err)
+			// Try with a shorter system message as a last resort
+			if attempt == 1 && systemMsgSize > 2000 {
+				log.Printf("warning: received HTML response with full system message (%d bytes), trying with shortened system message...", systemMsgSize)
+				shortSystemMsg := systemMessage[:1000] + "\n\n[System message truncated due to size constraints. Please analyze the code for security vulnerabilities.]"
+				shortContent := []llms.MessageContent{
+					llms.TextParts(llms.ChatMessageTypeSystem, shortSystemMsg),
+					llms.TextParts(llms.ChatMessageTypeHuman, code),
+				}
+				attemptCtx2, cancel2 := context.WithTimeout(ctx, timeout)
+				_, err2 := llm.GenerateContent(attemptCtx2, shortContent, llms.WithStreamingFunc(streamingFunc))
+				cancel2()
+				if err2 == nil {
+					return nil // Success with shortened message
+				}
+			}
+			return fmt.Errorf("received HTML response instead of JSON from Ollama server during API call. this usually means: 1) the /api/generate or /api/chat endpoint is not working, 2) server returned an error page, 3) there's a proxy/load balancer issue, 4) request payload too large. payload size: %d bytes (system: %d, code: %d). original error: %v", totalPayloadSize, systemMsgSize, codeSize, err)
 		}
 
 		// Handle incomplete JSON responses
 		if strings.Contains(err.Error(), "unexpected end of JSON") {
-			return fmt.Errorf("incomplete JSON response from server. this usually means: 1) server timeout/crash during response, 2) network connection interrupted, 3) response too large and was cut off, 4) proxy/load balancer timeout. code size: %d bytes. original error: %v", codeSize, err)
+			return fmt.Errorf("incomplete JSON response from server. this usually means: 1) server timeout/crash during response, 2) network connection interrupted, 3) response too large and was cut off, 4) proxy/load balancer timeout. payload size: %d bytes. original error: %v", totalPayloadSize, err)
 		}
 
 		// Retry on timeout or network errors
