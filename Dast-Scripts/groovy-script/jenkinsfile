@@ -20,7 +20,7 @@ pipeline {
                         runAsGroup: 0
                     volumeMounts:
                     - name: workspace-volume
-                        mountPath: /home/jenkins/agent
+                      mountPath: /home/jenkins/agent
             volumes:
               - name: workspace-volume
                 emptyDir: {}
