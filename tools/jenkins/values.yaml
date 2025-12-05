@@ -38,18 +38,7 @@ jenkins:
       - ws-cleanup:0.48
       - handy-uri-templates-2-api:2.1.8-36.v85e4cb_234a_13
    
-# secrets for oauth github 
-    # containerEnv: 
-    #   - name: CLIENT_ID
-    #     valueFrom:
-    #       secretKeyRef:
-    #         name: jenkins-oauth-secrets
-    #         key: CLIENT_ID
-    #   - name: CLIENT_SECRET
-    #     valueFrom:
-    #       secretKeyRef:
-    #         name: jenkins-oauth-secrets
-    #         key: CLIENT_SECRET
+
 # JCasC Configuration under controller
     JCasC:
       enabled: true
