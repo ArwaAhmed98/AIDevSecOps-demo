@@ -24,13 +24,13 @@ jenkins:
 
    
 # JCasC Configuration under controller
-  JCasC:
-    enabled: true
-    defaultConfig: true
-    configScripts:
-      welcome-message: |-
-        jenkins:
-          systemMessage: "Welcome to DEMO CI server. This Jenkins is managed by DEMO team \n\n"
+    JCasC:
+      enabled: true
+      defaultConfig: true
+      configScripts:
+        welcome-message: |-
+          jenkins:
+            systemMessage: "Welcome to DEMO CI server. This Jenkins is managed by DEMO team \n\n"
 
 
     image:
