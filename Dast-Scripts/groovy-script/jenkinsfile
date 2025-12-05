@@ -12,8 +12,7 @@ pipeline {
                 containers:
                   - name: build
                     image: fadifarid/my-snapshot:redhat
-                    command:
-                      - "/usr/bin/cat"
+                    command: [ "sh", "-c", "sleep infinity" ]
                     tty: true
                     securityContext:
                         runAsUser: 0
