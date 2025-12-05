@@ -56,12 +56,11 @@ jenkins:
     # ----------------------------
     initContainerResources:
       requests:
-        memory: "256Mi"
-        cpu: "50m"
+        memory: "1Gi"
+        cpu: "300m"
       limits:
-        memory: "512Mi"
-        cpu: "100m"
-
+        memory: "3Gi"
+        cpu: "500m"
   # Persistent volume settings for Jenkins data
   persistence:
     enabled: true
