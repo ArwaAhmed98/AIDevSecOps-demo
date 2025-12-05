@@ -1,10 +1,5 @@
 jenkins:
   controller:
-    servicePort: 8080
-    # -- k8s target port
-    targetPort: 8080
-    # -- k8s node port. Only used if serviceType is NodePort
-    nodePort: 30000
 
     installPlugins:
       - configuration-as-code:1998.v3e50e6e9d9d3
