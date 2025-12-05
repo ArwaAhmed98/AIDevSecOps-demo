@@ -13,6 +13,26 @@ argo-cd:
 
     rbac:
       policy.csv: |
+        # Dynamic group mapping (example for GitHub teams)
+        g, VFCOM-CICD:{{.group}}, role:{{.group}}
+
+        # Admins
+        g, VFCOM-CICD:DevOps, role:admin
+        p, role:admin, applications, *, */*, allow
+        p, role:admin, applicationsets, *, */*, allow
+        p, role:admin, clusters, get, *, allow
+        p, role:admin, repositories, *, *, allow
+        p, role:admin, appprojects, *, *, allow
+
+        # Readonly Org Users
+        g, VFCOM-CICD:org, role:readonly
+        p, role:readonly, applications, get, *, allow
+        p, role:readonly, applications, list, *, allow
+
+        # ApplicationSet Controller permissions
+        p, system:serviceaccount:argocd:argocd-applicationset-controller, applications, *, */*, allow
+        p, system:serviceaccount:argocd:argocd-applicationset-controller, applicationsets, *, */*, allow
+        p, system:serviceaccount:argocd:argocd-applicationset-controller, appprojects, *, */*, allow
 
     cm:
       create: true
@@ -20,8 +40,8 @@ argo-cd:
       timeout.reconciliation: 60s
       admin.enabled: true
       ui.bannercontent: |
-        🚀 Welcome to DEMO Argo CD! 🎯
-        - Please log in with your GitHub Account 🔑 
+        Welcome to DEMO Argo CD!  🚀 
+        - Please log in with your GitHub Account 
         Managed by R&D Team 🌟
       dex.config: |
         connectors:
