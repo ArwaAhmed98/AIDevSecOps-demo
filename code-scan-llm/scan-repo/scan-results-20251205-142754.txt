@@ -1,0 +1,38 @@
+Security Scan Results
+Repository: https://github.com/MostafaAnas/Go-LLM-Code-Scan
+Scan Date: 2025-12-05 14:27:54
+================================================================================
+
+Analyzing file: /var/folders/__/0w1crs0n1wqgx0nsrz0jnzkh0000gp/T/repo-3647282217/scan-file/main.go
+**Vulnerability Review**
+
+### Identified Critical Vulnerabilities:
+
+1. **Insecure API Usage**: The `ollama.New` function is used with a hardcoded server URL (`http://localhost:11434`). This could lead to an attacker intercepting the communication between your application and the LLM, potentially allowing them to manipulate or eavesdrop on sensitive data.
+2. **Lack of Input Validation**: The `readFile` function does not validate its input path. If a malicious user were to provide a specially crafted path, they could potentially read arbitrary files on the system.
+
+### Risks:
+
+1. **Insecure API Usage**:
+   - Risk: An attacker could intercept and manipulate sensitive data exchanged between your application and the LLM.
+   - Attack Vector: A man-in-the-middle (MITM) attack or a DNS spoofing attack could be used to intercept the communication.
+   - Example: Imagine an attacker intercepts the conversation between your application and the LLM, allowing them to modify the system message or code being analyzed.
+
+2. **Lack of Input Validation**:
+   - Risk: A malicious user could read arbitrary files on the system by providing a specially crafted path.
+   - Attack Vector: A path traversal attack (e.g., using `../` in the path) could be used to access sensitive data.
+   - Example: If an attacker were able to provide a path like `../../etc/passwd`, they could potentially read the contents of the `/etc/passwd` file.
+
+### Fixes:
+
+1. **Insecure API Usage**:
+   - Fix: Use environment variables or configuration files to store sensitive information (e.g., server URLs) instead of hardcoding them.
+   - Code Snippet:
+     ```go
+serverURL := os.Getenv("LLM_SERVER_URL")
+if serverURL == "" {
+    log.Fatal("LLM_SERVER_URL not set in environment")
+}
+llm, err := ollama.New(
+    ollama.WithModel("llama3.2:1b"),
+    ollama.WithServer
