@@ -1,28 +1,105 @@
 replicaCount: 1
 namespace: demo
-release: backend-app
+release: "demo-app"
 
-name: backend
 image:
   repository: hashicorp/http-echo
-  tag: "0.2.3"
   pullPolicy: IfNotPresent
+  tag: "0.2.3"
+
+imagePullSecrets: []
+
+terminationGracePeriodSeconds: 20
+
+nameOverride: "backend-service"
+fullnameOverride: "backend-service"
+
+serviceAccount:
+  create: false
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: 
+  reloader.stakater.com/auto: "true"
+
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: 
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+
 service:
-  type: ClusterIP
-  port: 8080
-  targetPort: 5678
-command: ["-text='AIDevSecOps-Demo!'"]
+  type: NodePort
+  port: 80
+  targetport: 5678
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: demo.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+
 livenessProbe:
-  httpGet:
-    path: /
-    port: 5678
-  initialDelaySeconds: 5
-  periodSeconds: 15
-  timeoutSeconds: 5
-readinessProbe:
   httpGet:
     path: /
     port: 5678
   initialDelaySeconds: 5
   periodSeconds: 10
   timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 5678
+  initialDelaySeconds: 2
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  metrics: []
+  scaleDown:
+    stabilizationWindowSeconds: 300
+    type: "Percent"
+    policyValue: 100
+    periodSeconds: 15
+
+volumes: []
+
+env:
+  - name: DEMO_MESSAGE
+    value: "Hello from demo app!"
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+lifecycle:
+  preStop:
+    exec:
+      command: ["sh", "-c", "echo shutting down"]
