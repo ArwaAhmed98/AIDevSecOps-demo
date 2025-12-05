@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,6 +33,37 @@ func cloneRepo(repoURL, localPath string) error {
 	return cmd.Run()
 }
 
+// checkOllamaServer checks if the Ollama server is accessible
+func checkOllamaServer(serverURL string) error {
+	// Try to reach the API tags endpoint (standard Ollama endpoint)
+	baseURL := strings.TrimSuffix(serverURL, "/")
+	healthURL := baseURL + "/api/tags"
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Get(healthURL)
+	if err != nil {
+		// If /api/tags fails, try the base URL
+		resp2, err2 := client.Get(baseURL)
+		if err2 != nil {
+			return fmt.Errorf("failed to connect to Ollama server at %s: %v. please ensure the server is running and accessible. checked endpoints: %s and %s", serverURL, err, healthURL, baseURL)
+		}
+		defer resp2.Body.Close()
+		// If base URL responds, server might be accessible but endpoint is different
+		if resp2.StatusCode == http.StatusOK || resp2.StatusCode == http.StatusNotFound {
+			// Server is reachable, might just be a different API structure
+			return nil
+		}
+		return fmt.Errorf("ollama server at %s returned status: %d", baseURL, resp2.StatusCode)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("ollama server returned non-OK status: %d. server may not be properly configured", resp.StatusCode)
+	}
+	return nil
+}
+
 // analyzeCode sends the code and system message to the LLM for analysis.
 func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string, outputWriter io.Writer) error {
 	content := []llms.MessageContent{
@@ -53,7 +85,14 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 
 	// Generate content with streaming
 	_, err := llm.GenerateContent(ctx, content, llms.WithStreamingFunc(streamingFunc))
-	return err
+	if err != nil {
+		// Provide more context for JSON parsing errors
+		if strings.Contains(err.Error(), "invalid character '<'") {
+			return fmt.Errorf("received HTML response instead of JSON from Ollama server. This usually means: 1) Server is not accessible, 2) Server returned an error page, 3) Incorrect server URL. Original error: %v", err)
+		}
+		return fmt.Errorf("LLM API error: %v", err)
+	}
+	return nil
 }
 
 // scanRepo scans a GitHub repository for security vulnerabilities.
@@ -158,7 +197,15 @@ func main() {
 		serverURL = "http://localhost:11434" // Default server URL
 	}
 
+	// Check if Ollama server is accessible before initializing
+	fmt.Printf("Checking Ollama server connection at %s...\n", serverURL)
+	if err := checkOllamaServer(serverURL); err != nil {
+		log.Fatalf("Ollama server check failed: %v\n", err)
+	}
+	fmt.Printf("Ollama server is accessible.\n")
+
 	// Initialize the Ollama LLM
+	fmt.Printf("Initializing LLM with model: %s\n", model)
 	llm, err := ollama.New(
 		ollama.WithModel(model),
 		ollama.WithServerURL(serverURL),
@@ -166,6 +213,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize LLM: %v\n", err)
 	}
+	fmt.Printf("LLM initialized successfully.\n\n")
 
 	// Get output file path from environment variable or use default
 	outputFile := os.Getenv("OUTPUT_FILE")
