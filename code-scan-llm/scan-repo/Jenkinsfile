@@ -58,16 +58,8 @@ pipeline {
                             if [ -n "${params.OUTPUT_FILE}" ]; then
                                 export OUTPUT_FILE="${params.OUTPUT_FILE}"
                             fi
-                             go run main.go "${params.REPO_URL}"
+                            go run main.go "${params.REPO_URL}"
                         """
-                        // withCredentials([
-                        //         usernamePassword(credentialsId: 'GHE', 
-                        //         usernameVariable: 'USER', 
-                        //         passwordVariable: 'PASS')]) {
-                        //             sh """
-                        //             go run main.go "${params.REPO_URL}"
-                        //             """
-                        //     }
                         }
                 }
             }
