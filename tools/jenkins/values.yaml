@@ -1,0 +1,174 @@
+jenkins:
+  controller:
+    installPlugins:
+      - configuration-as-code:1971.vf9280461ea_89
+      - git:5.7.0
+      - git-client:6.1.3   
+      - docker-plugin:1.10.0
+      - jira:3.14
+      - slack:761.v2a_8770f0d169
+      - maven-plugin:3.26
+      - amazon-ecs:1.49
+      - junit:1335.v6b_a_a_e18534e1
+      - artifactory:4.0.8
+      - sonar:2.18
+      - workflow-aggregator:600.vb_57cdd26fdd7
+      - role-strategy:756.v978cb_392eb_d3
+      - kubernetes
+      - github-oauth:647.v44f5236c308d
+      - matrix-auth:3.2.5
+      - job-dsl:1.91
+
+      # BlueOcean (only main plugin required)
+      - blueocean:1.27.21
+
+      # Extra utilities
+      - cloudbees-bitbucket-branch-source:937.0.2
+      - copyartifact:770.va_6c69e063442
+      - favorite:2.225.v68765b_b_a_1fa_3
+      - htmlpublisher:425
+      - http_request:1.20
+      - parameter-separator:276.v7b_5328f5c7a_d
+      - pipeline-utility-steps:2.19.0
+      - pipeline-graph-analysis:237.v2b_75640ca_888
+      - pipeline-graph-view:628.va_6f6a_1d12848
+      - prisma-cloud-iac-scan:1.3.5
+      - pubsub-light:1.19
+      - resource-disposer:0.25
+      - ws-cleanup:0.48
+      - handy-uri-templates-2-api:2.1.8-36.v85e4cb_234a_13
+   
+# secrets for oauth github 
+    # containerEnv: 
+    #   - name: CLIENT_ID
+    #     valueFrom:
+    #       secretKeyRef:
+    #         name: jenkins-oauth-secrets
+    #         key: CLIENT_ID
+    #   - name: CLIENT_SECRET
+    #     valueFrom:
+    #       secretKeyRef:
+    #         name: jenkins-oauth-secrets
+    #         key: CLIENT_SECRET
+# JCasC Configuration under controller
+    JCasC:
+      enabled: true
+      defaultConfig: true
+      configScripts:
+        welcome-message: |-
+          jenkins:
+            systemMessage: "Welcome to DEMO CI server. This Jenkins is managed by DEMO team \n\n"
+
+      # -- Jenkins Config as Code authorization strategy
+      #   authorization-strategy: |-
+      #     jenkins:
+      #       authorizationStrategy:
+      #         globalMatrix:
+      #           permissions:
+      #             - "View/Delete:authenticated"
+      #             - "View/Read:authenticated"
+      #             - "View/Configure:authenticated"
+      #             - "View/Create:authenticated"
+      #             - "Job/Read:authenticated"
+      #             - "Job/Build:authenticated"
+      #             - "Job/Configure:authenticated"
+      #             - "Job/Create:authenticated"
+      #             - "Job/Delete:authenticated"
+      #             - "Job/Discover:authenticated"
+      #             - "Job/Move:authenticated"
+      #             - "Job/Workspace:authenticated"
+      #             - "Job/Cancel:authenticated"
+      #             - "Run/Delete:authenticated"
+      #             - "Run/Replay:authenticated"
+      #             - "Run/Update:authenticated"
+      #             - "SCM/Tag:authenticated"
+      #             - "Overall/Read:anonymous"
+      #             - "Overall/Administer:authenticated"
+
+      # # -- Jenkins Config as Code security-section
+      # # Security Realm section
+      #   security-realm: |-
+      #     jenkins:
+      #       securityRealm:
+      #         github:
+      #           clientID: "${CLIENT_ID}"
+      #           clientSecret: "${CLIENT_SECRET}"
+      #           githubWebUri: "https://github.vodafone.com"
+      #           githubApiUri: "https://github.vodafone.com/api/v3"  
+      #           oauthScopes: "read:org,user:email,repo"
+      #           # allowedOrganizations:
+      #           #   - "vodafone"  # Restrict logins to your GitHub organization
+
+    image:
+      registry: "docker.io"  # Registry for the private Docker registry
+      repository: "jenkins/jenkins"  # Repository path
+      tag: "jdk21"  # Specify the image tag
+      pullPolicy: "IfNotPresent"   # Optionally specify the image pull policy
+
+
+
+   # Resource settings for the Jenkins controller pod
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "7Gi"
+        cpu: "3000m"
+      limits:
+        memory: "8Gi"
+        cpu: "5000m"
+
+  # Persistent volume settings for Jenkins data
+  persistence:
+    enabled: true
+    storageClass: "gp2"
+    size: "80Gi"
+
+
+  sidecars:
+    configAutoReload:
+      enabled: true
+
+  rbac:
+    create: true
+    readSecrets: false
+    useOpenShiftNonRootSCC: false
+
+  serviceAccountAgent:
+    create: true
+
+
+  agent:
+    enabled: true
+    replicaCount: 1
+
+    # Pod template for Jenkins agent
+    podTemplates:
+      AIDevecops-agent: |
+        - name: AIDevecops-agent
+          label: jenkins-custom-agent
+          serviceAccount: jenkins
+          containers: AIDevecops-agent
+            - name: 
+              image: "busybox"
+              imagePullPolicy: "IfNotPresent"
+              command: "/bin/sh -c"
+              args: "cat"
+              ttyEnabled: true
+              privileged: true
+              resourceRequestCpu: "512m"
+              resourceRequestMemory: "512Mi"
+              resourceLimitCpu: "1024m"
+              resourceLimitMemory: "1024Mi"
+
+    # Agent pod resources
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+
+    # Image pull secrets for private registry
+    imagePullSecrets:
+      - name: jenkins-agent-regcred
