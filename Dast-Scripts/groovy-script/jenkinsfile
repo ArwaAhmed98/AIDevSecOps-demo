@@ -9,20 +9,20 @@ pipeline {
             labels:
                 jenkins: slave
             spec:
-            containers:
+                containers:
                 - name: build
-                image: fadifarid/my-snapshot:redhat
-                command:
-                    - cat
-                tty: true
-                securityContext:
-                    runAsUser: 0
-                    runAsGroup: 0
-                volumeMounts:
+                    image: fadifarid/my-snapshot:redhat
+                    command:
+                        - cat
+                    tty: true
+                    securityContext:
+                        runAsUser: 0
+                        runAsGroup: 0
+                    volumeMounts:
                     - name: workspace-volume
-                    mountPath: /home/jenkins/agent
+                        mountPath: /home/jenkins/agent
             volumes:
-                - name: workspace-volume
+              - name: workspace-volume
                 emptyDir: {}
             """
         }
