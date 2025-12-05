@@ -111,11 +111,11 @@ jenkins:
     replicaCount: 1
     resources:
       requests:
-        memory: "7Gi"
-        cpu: "3000m"
+        memory: "1Gi"
+        cpu: "200m"
       limits:
-        memory: "8Gi"
-        cpu: "5000m"
+        memory: "2Gi"
+        cpu: "400m"
 
   # Persistent volume settings for Jenkins data
   persistence:
