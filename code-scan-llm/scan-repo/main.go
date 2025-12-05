@@ -103,6 +103,12 @@ func min(a, b int) int {
 
 // analyzeCode sends the code and system message to the LLM for analysis.
 func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string, outputWriter io.Writer) error {
+	// Check code size and warn if very large (might cause issues)
+	codeSize := len(code)
+	if codeSize > 100000 { // 100KB
+		log.Printf("warning: code file is large (%d bytes), this may cause timeout or payload issues", codeSize)
+	}
+
 	content := []llms.MessageContent{
 		llms.TextParts(llms.ChatMessageTypeSystem, systemMessage),
 		llms.TextParts(llms.ChatMessageTypeHuman, code),
@@ -120,16 +126,42 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 		return nil
 	}
 
-	// Generate content with streaming
-	_, err := llm.GenerateContent(ctx, content, llms.WithStreamingFunc(streamingFunc))
-	if err != nil {
-		// Provide more context for JSON parsing errors
-		if strings.Contains(err.Error(), "invalid character '<'") {
-			return fmt.Errorf("received HTML response instead of JSON from Ollama server during API call. this usually means: 1) the /api/generate or /api/chat endpoint is not working, 2) server returned an error page, 3) there's a proxy/load balancer issue. original error: %v", err)
+	// Retry logic for transient errors
+	maxRetries := 3
+	var lastErr error
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		// Create a new context for each attempt with appropriate timeout
+		// Larger files need more time
+		timeout := 5 * time.Minute
+		if codeSize > 50000 {
+			timeout = 10 * time.Minute
 		}
-		return fmt.Errorf("llm API error: %v", err)
+		attemptCtx, cancel := context.WithTimeout(ctx, timeout)
+
+		// Generate content with streaming
+		_, err := llm.GenerateContent(attemptCtx, content, llms.WithStreamingFunc(streamingFunc))
+		cancel()
+
+		if err == nil {
+			return nil // Success
+		}
+
+		lastErr = err
+
+		// Don't retry on HTML/JSON parsing errors - these are configuration issues
+		if strings.Contains(err.Error(), "invalid character '<'") {
+			return fmt.Errorf("received HTML response instead of JSON from Ollama server during API call. this usually means: 1) the /api/generate or /api/chat endpoint is not working, 2) server returned an error page, 3) there's a proxy/load balancer issue, 4) request payload too large. code size: %d bytes. original error: %v", codeSize, err)
+		}
+
+		// Retry on timeout or network errors
+		if attempt < maxRetries {
+			waitTime := time.Duration(attempt) * 2 * time.Second
+			log.Printf("attempt %d failed, retrying in %v... error: %v", attempt, waitTime, err)
+			time.Sleep(waitTime)
+		}
 	}
-	return nil
+
+	return fmt.Errorf("llm API error after %d attempts: %v", maxRetries, lastErr)
 }
 
 // scanRepo scans a GitHub repository for security vulnerabilities.
@@ -204,7 +236,7 @@ func scanRepo(ctx context.Context, llm llms.Model, repoURL, systemMessage string
 func main() {
 	// Check command-line arguments
 	if len(os.Args) < 2 {
-		log.Fatal("Usage: go run main.go")
+		log.Fatal("Usage: go run main.go <github-repo-url>")
 	}
 
 	// Get the GitHub repository URL
@@ -252,17 +284,23 @@ func main() {
 	}
 	fmt.Printf("LLM initialized successfully.\n")
 
-	// Test the API with a small request to verify the generate endpoint works
-	fmt.Printf("Testing API connection with a small request...\n")
-	testCtx, testCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// Test the API with a realistic request (including system message) to verify the generate endpoint works
+	fmt.Printf("Testing API connection with a realistic request...\n")
+	testCtx, testCancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer testCancel()
+	// Use a small portion of the system message for testing
+	testSystemMsg := systemMessage
+	if len(testSystemMsg) > 500 {
+		testSystemMsg = testSystemMsg[:500] + "..."
+	}
 	testContent := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeHuman, "Say 'OK'"),
+		llms.TextParts(llms.ChatMessageTypeSystem, testSystemMsg),
+		llms.TextParts(llms.ChatMessageTypeHuman, "Analyze this code: func test() { return true }"),
 	}
 	_, testErr := llm.GenerateContent(testCtx, testContent)
 	if testErr != nil {
 		if strings.Contains(testErr.Error(), "invalid character '<'") {
-			log.Fatalf("API test failed: received HTML response from /api/generate endpoint. the server URL %s may be incorrect or the endpoint is not accessible. error: %v\n", serverURL, testErr)
+			log.Fatalf("API test failed: received HTML response from /api/generate endpoint. the server URL %s may be incorrect or the endpoint is not accessible. this could indicate: 1) proxy/load balancer blocking POST requests, 2) incorrect server URL, 3) server not properly configured. error: %v\n", serverURL, testErr)
 		}
 		log.Fatalf("API test failed: %v. please verify the server URL and model are correct\n", testErr)
 	}
@@ -294,8 +332,8 @@ func main() {
 	outputWriter.Write([]byte(header))
 	fmt.Printf("Writing output to: %s\n\n", outputFile)
 
-	// Create a context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute) // Adjust timeout as needed
+	// Create a context with timeout (will be extended per-file in analyzeCode if needed)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute) // Extended timeout for multiple files
 	defer cancel()
 
 	// Scan the GitHub repository
