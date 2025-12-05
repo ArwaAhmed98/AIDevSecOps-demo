@@ -48,7 +48,7 @@ pipeline {
                     
                     ./zap.sh -daemon -port 8080 -config api.key=vh7bqrauhothh2b0en7r53se5i &
                     sleep 60
-                    python3 ${env.WORKSPACE}/Dast-Scripts/Zap-scan.py --repo "$REPONAME"
+                    python3 ${env.WORKSPACE}/Dast-Scripts/Zap-scan.py --repo "$REPONAME" || true
                     python3 ${env.WORKSPACE}/Dast-Scripts/Zap-scan.py --repo "$REPONAME"
                     pkill -f zap.sh
                     """
