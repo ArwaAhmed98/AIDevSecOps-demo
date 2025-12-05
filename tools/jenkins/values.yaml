@@ -59,45 +59,6 @@ jenkins:
           jenkins:
             systemMessage: "Welcome to DEMO CI server. This Jenkins is managed by DEMO team \n\n"
 
-      # -- Jenkins Config as Code authorization strategy
-      #   authorization-strategy: |-
-      #     jenkins:
-      #       authorizationStrategy:
-      #         globalMatrix:
-      #           permissions:
-      #             - "View/Delete:authenticated"
-      #             - "View/Read:authenticated"
-      #             - "View/Configure:authenticated"
-      #             - "View/Create:authenticated"
-      #             - "Job/Read:authenticated"
-      #             - "Job/Build:authenticated"
-      #             - "Job/Configure:authenticated"
-      #             - "Job/Create:authenticated"
-      #             - "Job/Delete:authenticated"
-      #             - "Job/Discover:authenticated"
-      #             - "Job/Move:authenticated"
-      #             - "Job/Workspace:authenticated"
-      #             - "Job/Cancel:authenticated"
-      #             - "Run/Delete:authenticated"
-      #             - "Run/Replay:authenticated"
-      #             - "Run/Update:authenticated"
-      #             - "SCM/Tag:authenticated"
-      #             - "Overall/Read:anonymous"
-      #             - "Overall/Administer:authenticated"
-
-      # # -- Jenkins Config as Code security-section
-      # # Security Realm section
-      #   security-realm: |-
-      #     jenkins:
-      #       securityRealm:
-      #         github:
-      #           clientID: "${CLIENT_ID}"
-      #           clientSecret: "${CLIENT_SECRET}"
-      #           githubWebUri: "https://github.vodafone.com"
-      #           githubApiUri: "https://github.vodafone.com/api/v3"  
-      #           oauthScopes: "read:org,user:email,repo"
-      #           # allowedOrganizations:
-      #           #   - "vodafone"  # Restrict logins to your GitHub organization
 
     image:
       registry: "docker.io"  # Registry for the private Docker registry
