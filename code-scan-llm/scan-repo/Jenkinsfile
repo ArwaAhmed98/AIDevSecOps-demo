@@ -32,9 +32,9 @@ pipeline {
 
     
     parameters {
-        string(name: 'REPO_URL', defaultValue: 'https://github.com/user/repo', description: 'GitHub repository URL to scan')
+        string(name: 'REPO_URL', defaultValue: 'https://github.vodafone.com/VFCOM-CICD/AIDevSecOps-demo.git', description: 'GitHub repository URL to scan')
         string(name: 'OLLAMA_MODEL', defaultValue: 'llama3.2:1b', description: 'Ollama model to use')
-        string(name: 'OLLAMA_SERVER_URL', defaultValue: 'http://localhost:11434', description: 'Ollama server URL')
+        string(name: 'OLLAMA_SERVER_URL', defaultValue: 'http://172.22.24.2:8080', description: 'Ollama server URL')
         string(name: 'OUTPUT_FILE', defaultValue: '', description: 'Output file name (optional)')
     }
     
@@ -44,7 +44,6 @@ pipeline {
                 container('go'){
                     dir('code-scan-llm/scan-repo') {
                         sh """
-                    
                             # Initialize Go module if needed
                             if [ ! -f go.mod ]; then
                                 go mod init code-scan-llm
@@ -59,8 +58,16 @@ pipeline {
                             if [ -n "${params.OUTPUT_FILE}" ]; then
                                 export OUTPUT_FILE="${params.OUTPUT_FILE}"
                             fi
-                            go run main.go "${params.REPO_URL}"
+                             go run main.go "${params.REPO_URL}"
                         """
+                        // withCredentials([
+                        //         usernamePassword(credentialsId: 'GHE', 
+                        //         usernameVariable: 'USER', 
+                        //         passwordVariable: 'PASS')]) {
+                        //             sh """
+                        //             go run main.go "${params.REPO_URL}"
+                        //             """
+                        //     }
                         }
                 }
             }
