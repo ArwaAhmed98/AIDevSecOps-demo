@@ -6,12 +6,12 @@ envs:
     service:
       # - test
 
-  dev:
-    name: dev
-    enabled: false
+  demo:
+    name: demo
+    enabled: true
     common_service: true
     service:  
-      # - ltest
+       - backend-service
 common_services:
   # - test-svc
 
