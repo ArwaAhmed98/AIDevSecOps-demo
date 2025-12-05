@@ -13,42 +13,10 @@ argo-cd:
 
     rbac:
       policy.csv: |
-        # Dynamic group mapping (example for GitHub teams)
-        g, vfgroup-mpa-superapp:{{.group}}, role:{{.group}}
-
-        # Admins
-        g, vfgroup-mpa-superapp:superapp-admins, role:admin
-        p, role:admin, applications, *, */*, allow
-        p, role:admin, applicationsets, *, */*, allow
-        p, role:admin, clusters, get, *, allow
-        p, role:admin, repositories, *, *, allow
-        p, role:admin, appprojects, *, *, allow
-
-        # Superapp Ops
-        g, vfgroup-mpa-superapp:superapp-admins, role:superapp-ops
-        p, role:superapp-ops, applications, get, *, allow
-        p, role:superapp-ops, applications, list, *, allow
-        p, role:superapp-ops, applications, sync, *, allow
-
-        # Backend Developers
-        g, vfgroup-mpa-superapp:superapp-admins, role:superapp-backend-developers
-        p, role:superapp-backend-developers, applications, get, *, allow
-        p, role:superapp-backend-developers, applications, list, *, allow
-        p, role:superapp-backend-developers, applications, sync, *, allow
-
-        # Readonly Org Users
-        g, vfgroup-mpa-superapp:org, role:readonly
-        p, role:readonly, applications, get, *, allow
-        p, role:readonly, applications, list, *, allow
-
-        # ApplicationSet Controller permissions
-        p, system:serviceaccount:argocd:argocd-applicationset-controller, applications, *, */*, allow
-        p, system:serviceaccount:argocd:argocd-applicationset-controller, applicationsets, *, */*, allow
-        p, system:serviceaccount:argocd:argocd-applicationset-controller, appprojects, *, */*, allow
 
     cm:
       create: true
-      url: "https://console.services.drc.superapp.m-pesa.com/argocd"
+      url: "http://localhost:8085/argocd"
       timeout.reconciliation: 60s
       admin.enabled: true
       ui.bannercontent: |
@@ -58,19 +26,19 @@ argo-cd:
       dex.config: |
         connectors:
           - type: github
-            id: vfgroup-mpa-superapp  
-            name: 🔒  vfgroup mpa superapp GitHub 
+            id: VFCOM-CICD
+            name: 🔒  VFCOM-CICD GitHub 
             config:
               hostName: github.vodafone.com
               clientID: $CLIENT_ID
               clientSecret: $CLIENT_SECRET
               orgs:
-              - name: vfgroup-mpa-superapp
+              - name: VFCOM-CICD
                 teams: []
               loadAllGroups: true
 
     repositoryCredentials:
-      - url: https://github.vodafone.com/vfgroup-mpa-superapp/
+      - url: https://github.vodafone.com/VFCOM-CICD/
         usernameSecret:
           name: argocd-repo-creds
           key: username
@@ -79,7 +47,7 @@ argo-cd:
           key: password
 
     repositories:
-      - url: https://github.vodafone.com/vfgroup-mpa-superapp/superapp-drc-charts
+      - url: https://github.vodafone.com/VFCOM-CICD/AIDevSecOps-demo
         type: git
 
     params:
