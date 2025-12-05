@@ -1,0 +1,16 @@
+##################  Charts Tools ################################
+tools:
+  jenkins: 
+    name: jenkins
+    namespace: jenkins
+    valuefile: values.yaml
+    project: tools
+    repo_url: https://github.vodafone.com/VFCOM-CICD/AIDevSecOps-demos.git
+     
+  metrics-server: 
+    name: metrics-server
+    namespace: metrics-server
+    project: tools
+    repo_url: https://github.vodafone.com/VFCOM-CICD/AIDevSecOps-demo.git
+    
+
