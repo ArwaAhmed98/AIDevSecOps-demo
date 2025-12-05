@@ -24,7 +24,7 @@ zap.spider.scan(target)
 scan = zap.ascan.scan(target)
 
 
-#print(f'Scan started with ID: {scan}')
+print(f'Scan started with ID: {scan}')
 while int(zap.ascan.status(scan)) < 100:
     print(f'Scan progress: {zap.ascan.status(scan)}%')
     time.sleep(5)
