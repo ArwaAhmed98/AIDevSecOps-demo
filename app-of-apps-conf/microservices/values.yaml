@@ -1,0 +1,18 @@
+envs:
+  staging:
+    name: staging
+    enabled: true
+    common_service: true
+    service:
+      # - test
+
+  dev:
+    name: dev
+    enabled: false
+    common_service: true
+    service:  
+      # - ltest
+common_services:
+  # - test-svc
+
+ 

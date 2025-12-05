@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # The name of the Deployment, derived from the Helm chart template
+  name: {{ include "aidevsecops-app.fullname" . }}-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    # Labels for identifying the Deployment, defined in the Helm chart
+    {{- include "aidevsecops-app.labels" . | nindent 4 }}
+spec:
+  # Define the number of replicas only if autoscaling is disabled
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      # Labels used to match the Pods controlled by this Deployment
+      {{- include "aidevsecops-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      # Annotations for the Pod, useful for tracking and metadata purposes
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        # Labels applied to the Pods, ensuring proper identification
+        {{- include "aidevsecops-app.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      # terminationGracePeriodSeconds , how long Kubernetes will wait for a Pod to terminate gracefully before forcefully killing it
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end }}
+      # Image pull secrets, used if the image is stored in a private registry
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Specifies the service account for the Pod
+      serviceAccountName: {{ include "aidevsecops-app.serviceAccountName" . }}
+      # Security settings at the Pod level
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "aidevsecops-app.fullname" . }}
+          # Security settings specific to this container
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # Container image and tag (version), using default if not provided
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          # imagePullPolicy: IfNotPresent  #force using IfNotPresent pullpolicy
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            # Defines the main application port
+            - name: http
+              containerPort: {{ default .Values.service.port .Values.service.targetport }}
+              protocol: TCP
+          # Environment variables from ConfigMaps or Secrets
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # Liveness probe ensures the application is still running
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # Readiness probe ensures the application is ready to accept traffic
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # Defines startup and shutdown behavior
+          {{- with .Values.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # Specifies resource requests and limits for the container
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # Mounts volumes inside the container
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # Additional environment variables
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      # Defines sidecar containers if any are configured
+      {{- if .Values.sidecars }}
+        {{- range .Values.sidecars }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          imagePullPolicy: IfNotPresent
+          {{- with .resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      # Defines volumes used in the Pod
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Defines node selector rules for scheduling
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Defines affinity rules for pod placement
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Defines tolerations to allow scheduling on tainted nodes
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- end }}
+
+      {{- if .Values.restartPolicy }}
+      restartPolicy: {{ .Values.restartPolicy }}
+      {{- end }}
+
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName }}
+      {{- end }}

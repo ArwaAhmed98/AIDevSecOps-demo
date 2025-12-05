@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aidevsecops-app.fullname" . }}-service
+  namespace: {{ .Values.namespace }}
+ 
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ default .Values.service.port .Values.service.targetport }}
+  selector:
+    {{- include "aidevsecops-app.selectorLabels" . | nindent 4 }}

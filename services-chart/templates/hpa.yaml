@@ -1,0 +1,41 @@
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "aidevsecops-app.fullname" . }}-scaller
+  namespace: {{ .Values.namespace}}
+
+  labels:
+    {{- include "aidevsecops-app.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "aidevsecops-app.fullname" . }}-deployment
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+  {{- range .Values.autoscaling.metrics }}
+  - type: {{ .type }}
+    {{- if eq .type "Resource" }}
+    resource:
+      name: {{ .resource.name }}
+      target:
+        type: {{ .resource.target.type }}
+        {{- if .resource.target.averageValue }}
+        averageValue: "{{ .resource.target.averageValue }}"
+        {{- end }}
+        {{- if .resource.target.averageUtilization }}
+        averageUtilization: {{ .resource.target.averageUtilization }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.autoscaling.scaleDown.stabilizationWindowSeconds | default 300 }}
+      policies:
+      - type: {{ .Values.autoscaling.scaleDown.type  }}
+        value: {{ .Values.autoscaling.scaleDown.policyValue | default 100 }}
+        periodSeconds: {{ .Values.autoscaling.scaleDown.periodSeconds | default 15 }}
+
+{{- end }}

@@ -1,0 +1,83 @@
+{{- range $env, $config := .Values.envs }}
+  {{- if or (not $config.enabled) (eq $config.enabled true) }}
+    {{- range $config.service }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ . }}-{{ $env }}
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ $config.name }}
+    server: https://kubernetes.default.svc
+  project: microservices
+  source:
+    repoURL: https://github.vodafone.com/VFCOM-CICD/AIDevSecOps-demo
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+        - "./microservices/{{ . }}/values-{{ $env }}.yaml"
+    path: services-chart
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=false
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+    {{- end }}
+
+    {{- if $config.common_service }}
+      {{- range $.Values.common_services }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ . }}-{{ $env }}
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ $config.name }}
+    server: https://kubernetes.default.svc
+  project: microservices
+  source:
+    repoURL: https://github.vodafone.com/VFCOM-CICD/AIDevSecOps-demo
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+        - "./microservices/{{ . }}/values-{{ $env }}.yaml"
+    path: services-chart
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=false
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
