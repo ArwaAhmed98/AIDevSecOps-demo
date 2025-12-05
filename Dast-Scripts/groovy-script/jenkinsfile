@@ -13,7 +13,7 @@ pipeline {
                   - name: build
                     image: fadifarid/my-snapshot:redhat
                     command:
-                      - "cat"
+                      - "/usr/bin/cat"
                     tty: true
                     securityContext:
                         runAsUser: 0
