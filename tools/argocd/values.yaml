@@ -22,7 +22,7 @@ argo-cd:
       ui.bannercontent: |
         🚀 Welcome to DEMO Argo CD! 🎯
         - Please log in with your GitHub Account 🔑 
-        Managed by UNICORN Team 🌟
+        Managed by R&D Team 🌟
       dex.config: |
         connectors:
           - type: github
