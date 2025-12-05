@@ -48,14 +48,7 @@ pipeline {
                     
                     ./zap.sh -daemon -port 8080 -config api.key=vh7bqrauhothh2b0en7r53se5i &
                     sleep 60
-                    echo "Waiting for ZAP to be ready..."
-                    for i in {1..30}; do
-                        if nc -z 127.0.0.1 8080; then
-                            echo "ZAP is running."
-                            break
-                        fi
-                        sleep 2
-                    done
+                   
                     python3 ${env.WORKSPACE}/Dast-Scripts/Zap-scan.py --repo "$REPONAME"
                     pkill -f zap.sh
                     """
