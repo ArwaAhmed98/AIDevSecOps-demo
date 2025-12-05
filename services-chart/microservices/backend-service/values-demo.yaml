@@ -1,5 +1,5 @@
 replicaCount: 1
-namespace: demo-2tier
+namespace: demo
 release: backend-app
 
 name: backend
