@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -33,35 +34,71 @@ func cloneRepo(repoURL, localPath string) error {
 	return cmd.Run()
 }
 
-// checkOllamaServer checks if the Ollama server is accessible
-func checkOllamaServer(serverURL string) error {
-	// Try to reach the API tags endpoint (standard Ollama endpoint)
+// checkOllamaServer checks if the Ollama server is accessible and returns JSON
+func checkOllamaServer(serverURL, model string) error {
 	baseURL := strings.TrimSuffix(serverURL, "/")
-	healthURL := baseURL + "/api/tags"
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	}
+
+	// First, check if the server responds with JSON (test /api/tags endpoint)
+	healthURL := baseURL + "/api/tags"
 	resp, err := client.Get(healthURL)
 	if err != nil {
-		// If /api/tags fails, try the base URL
-		resp2, err2 := client.Get(baseURL)
-		if err2 != nil {
-			return fmt.Errorf("failed to connect to Ollama server at %s: %v. please ensure the server is running and accessible. checked endpoints: %s and %s", serverURL, err, healthURL, baseURL)
-		}
-		defer resp2.Body.Close()
-		// If base URL responds, server might be accessible but endpoint is different
-		if resp2.StatusCode == http.StatusOK || resp2.StatusCode == http.StatusNotFound {
-			// Server is reachable, might just be a different API structure
-			return nil
-		}
-		return fmt.Errorf("ollama server at %s returned status: %d", baseURL, resp2.StatusCode)
+		return fmt.Errorf("failed to connect to Ollama server at %s: %v. please ensure the server is running and accessible", serverURL, err)
 	}
 	defer resp.Body.Close()
+
+	// Read response body to check if it's JSON
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response from Ollama server: %v", err)
+	}
+
+	// Check if response is HTML (error page)
+	if len(body) > 0 && body[0] == '<' {
+		return fmt.Errorf("ollama server at %s returned HTML instead of JSON. this usually means the server URL is incorrect or the server is not an Ollama instance. response preview: %s", serverURL, string(body[:min(200, len(body))]))
+	}
+
+	// Try to parse as JSON to verify it's valid
+	var jsonData interface{}
+	if err := json.Unmarshal(body, &jsonData); err != nil {
+		return fmt.Errorf("ollama server at %s returned invalid JSON response. response preview: %s", serverURL, string(body[:min(200, len(body))]))
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("ollama server returned non-OK status: %d. server may not be properly configured", resp.StatusCode)
 	}
+
+	// Verify the model exists by checking if it's in the tags list
+	if model != "" {
+		var tagsResp struct {
+			Models []struct {
+				Name string `json:"name"`
+			} `json:"models"`
+		}
+		if err := json.Unmarshal(body, &tagsResp); err == nil {
+			modelFound := false
+			for _, m := range tagsResp.Models {
+				if m.Name == model || strings.HasPrefix(m.Name, model+":") {
+					modelFound = true
+					break
+				}
+			}
+			if !modelFound {
+				log.Printf("warning: model '%s' not found in available models. available models: %v", model, tagsResp.Models)
+			}
+		}
+	}
+
 	return nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // analyzeCode sends the code and system message to the LLM for analysis.
@@ -88,9 +125,9 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 	if err != nil {
 		// Provide more context for JSON parsing errors
 		if strings.Contains(err.Error(), "invalid character '<'") {
-			return fmt.Errorf("received HTML response instead of JSON from Ollama server. This usually means: 1) Server is not accessible, 2) Server returned an error page, 3) Incorrect server URL. Original error: %v", err)
+			return fmt.Errorf("received HTML response instead of JSON from Ollama server during API call. this usually means: 1) the /api/generate or /api/chat endpoint is not working, 2) server returned an error page, 3) there's a proxy/load balancer issue. original error: %v", err)
 		}
-		return fmt.Errorf("LLM API error: %v", err)
+		return fmt.Errorf("llm API error: %v", err)
 	}
 	return nil
 }
@@ -167,7 +204,7 @@ func scanRepo(ctx context.Context, llm llms.Model, repoURL, systemMessage string
 func main() {
 	// Check command-line arguments
 	if len(os.Args) < 2 {
-		log.Fatal("Usage: go run main.go <github-repo-url>")
+		log.Fatal("Usage: go run main.go")
 	}
 
 	// Get the GitHub repository URL
@@ -199,10 +236,10 @@ func main() {
 
 	// Check if Ollama server is accessible before initializing
 	fmt.Printf("Checking Ollama server connection at %s...\n", serverURL)
-	if err := checkOllamaServer(serverURL); err != nil {
+	if err := checkOllamaServer(serverURL, model); err != nil {
 		log.Fatalf("Ollama server check failed: %v\n", err)
 	}
-	fmt.Printf("Ollama server is accessible.\n")
+	fmt.Printf("Ollama server is accessible and responding with JSON.\n")
 
 	// Initialize the Ollama LLM
 	fmt.Printf("Initializing LLM with model: %s\n", model)
@@ -213,7 +250,23 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize LLM: %v\n", err)
 	}
-	fmt.Printf("LLM initialized successfully.\n\n")
+	fmt.Printf("LLM initialized successfully.\n")
+
+	// Test the API with a small request to verify the generate endpoint works
+	fmt.Printf("Testing API connection with a small request...\n")
+	testCtx, testCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer testCancel()
+	testContent := []llms.MessageContent{
+		llms.TextParts(llms.ChatMessageTypeHuman, "Say 'OK'"),
+	}
+	_, testErr := llm.GenerateContent(testCtx, testContent)
+	if testErr != nil {
+		if strings.Contains(testErr.Error(), "invalid character '<'") {
+			log.Fatalf("API test failed: received HTML response from /api/generate endpoint. the server URL %s may be incorrect or the endpoint is not accessible. error: %v\n", serverURL, testErr)
+		}
+		log.Fatalf("API test failed: %v. please verify the server URL and model are correct\n", testErr)
+	}
+	fmt.Printf("API test successful. proceeding with scan...\n\n")
 
 	// Get output file path from environment variable or use default
 	outputFile := os.Getenv("OUTPUT_FILE")
