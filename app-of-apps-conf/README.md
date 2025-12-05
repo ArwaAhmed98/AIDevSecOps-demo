@@ -59,7 +59,6 @@ This Helm release will:
 1. Create the root ArgoCD Application
 2. Create ArgoCD Projects
 3. Deploy Tools Applications
-4. Deploy Services Applications
 
 ArgoCD will take over the recursive deployment.
 
