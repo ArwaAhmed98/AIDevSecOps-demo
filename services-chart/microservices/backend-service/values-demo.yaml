@@ -1,0 +1,28 @@
+replicaCount: 1
+namespace: demo
+release: backend-app
+
+name: backend
+image:
+  repository: hashicorp/http-echo
+  tag: "0.2.3"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 5678
+command: ["-text='AIDevSecOps-Demo!'"]
+livenessProbe:
+  httpGet:
+    path: /
+    port: 5678
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /
+    port: 5678
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
