@@ -1,40 +1,38 @@
-
 pipeline {
     agent {
-    kubernetes {
-        defaultContainer 'build'
-        yaml """
+        kubernetes {
+            defaultContainer 'build'
+            yaml """
             apiVersion: v1
             kind: Pod
             metadata:
-                name: dynamic-agent
-                labels:
-                    jenkins: slave
+            labels:
+                jenkins: slave
             spec:
-                containers:
+            containers:
                 - name: build
-                    image: fadifarid/my-snapshot:redhat
-                    command:
+                image: fadifarid/my-snapshot:redhat
+                command:
                     - cat
-                    tty: true
-                    securityContext:
-                        runAsUser: 0          # Run as root
-                        runAsGroup: 0
-                    volumeMounts:
-                      - name: workspace-volume
-                        mountPath: /home/jenkins/agent
+                tty: true
+                securityContext:
+                    runAsUser: 0
+                    runAsGroup: 0
+                volumeMounts:
+                    - name: workspace-volume
+                    mountPath: /home/jenkins/agent
             volumes:
-              - name: workspace-volume
+                - name: workspace-volume
                 emptyDir: {}
-        """
-            }
+            """
         }
+    }
 
-    
     parameters {
         string(name: 'REPONAME', defaultValue: 'vodafone/example-repo',
             description: 'Repository name (e.g., org/repo or repo)')
     }
+
     stages {
         stage('Checkout current repo (target)') {
             steps {
@@ -44,14 +42,18 @@ pipeline {
 
         stage('Zap-scan') {
             steps {
-                sh './zap.sh -daemon -port 8080 -config api.key=vh7bqrauhothh2b0en7r53se5i'
-                sh 'python3 Scripts/Zap-scan.py --repo "$REPONAME"'
+                container('build') {
+                    sh './zap.sh -daemon -port 8080 -config api.key=vh7bqrauhothh2b0en7r53se5i'
+                    sh 'python3 Scripts/Zap-scan.py --repo "$REPONAME"'
+                }
             }
         }
 
         stage('PR creation') {
             steps {
-                sh 'python3 Scripts/Createpr.py'
+                container('build') {
+                    sh 'python3 Scripts/Createpr.py'
+                }
             }
         }
     }
