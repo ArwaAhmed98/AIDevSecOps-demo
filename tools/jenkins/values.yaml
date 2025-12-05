@@ -136,8 +136,8 @@ jenkins:
   # Persistent volume settings for Jenkins data
   persistence:
     enabled: true
-    storageClass: "gp2"
-    size: "80Gi"
+    storageClass: "standard"
+    size: "50Gi"
 
 
   sidecars:
