@@ -4,14 +4,21 @@ import requests
 from zapv2 import ZAPv2
 from requests.exceptions import ProxyError
 import json
+import argparse
 
 # Initialize ZAP API client with API key
 api_key = 'vh7bqrauhothh2b0en7r53se5i'
 zap = ZAPv2(apikey=api_key)
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--repo', help='Repository name or URL', default=None)
+args = parser.parse_args()
+repo_input = args.repo
 # Take target URL as input
-target = "http://44.192.94.78:5000"
-code = "https://github.com/Fadi-Farid/Dast-tool.git"
+#target = "http://44.192.94.78:5000"
+target = "http://www.itsecgames.com"
+#code = "https://github.com/Fadi-Farid/Dast-tool.git"
+code = repo_input
 # Crawl and scan web application
 zap.spider.scan(target)
 scan = zap.ascan.scan(target)
@@ -35,7 +42,7 @@ for item in new_report:
     description = item["description"]
     reference = item["reference"]
     solution_provided = item["solution"]
-    url = "http://44.200.150.120/api/generate"
+    url = "http://172.22.24.2:8080/api/generate"
     payload = {
      "model": "llama3",
      "prompt": (

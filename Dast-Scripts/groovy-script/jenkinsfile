@@ -1,0 +1,49 @@
+
+pipeline {
+    agent {
+        docker {
+            image 'fadifarid/my-snapshot:redhat'
+            // If you need a specific node, keep your original labels:
+            label 'self-hosted && Linux && X64 && zap'
+            // Run as root (often needed for tools, pip installs, etc.)
+            args '-u root:root'
+        }
+    }
+    
+    parameters {
+        string(name: 'REPONAME', defaultValue: 'vodafone/example-repo',
+            description: 'Repository name (e.g., org/repo or repo)')
+    }
+
+    environment {
+        // Store the GitHub token in Jenkins Credentials with ID: github-token
+        GITHUB_TOKEN = credentials('github-token')
+    }
+
+    stages {
+        stage('Checkout current repo (target)') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Zap-scan') {
+            steps {
+                sh './zap.sh -daemon -port 8080 -config api.key=vh7bqrauhothh2b0en7r53se5i'
+                sh 'python3 Scripts/Zap-scan.py' --repo "$REPONAME"'
+            }
+        }
+
+        stage('PR creation') {
+            steps {
+                sh 'python3 Scripts/Createpr.py'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+    }
+}
