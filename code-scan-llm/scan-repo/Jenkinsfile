@@ -26,8 +26,8 @@ pipeline {
                         cpu: "1"
                         memory: "1Gi"
                 volumeMounts:
-                - name: workspace-vol
-                    mountPath: /home/jenkins/agent
+                    - name: workspace-vol
+                      mountPath: /home/jenkins/agent
             volumes:
               - name: workspace-vol
                 emptyDir: {}
