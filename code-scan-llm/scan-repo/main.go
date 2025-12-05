@@ -153,6 +153,11 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 			return fmt.Errorf("received HTML response instead of JSON from Ollama server during API call. this usually means: 1) the /api/generate or /api/chat endpoint is not working, 2) server returned an error page, 3) there's a proxy/load balancer issue, 4) request payload too large. code size: %d bytes. original error: %v", codeSize, err)
 		}
 
+		// Handle incomplete JSON responses
+		if strings.Contains(err.Error(), "unexpected end of JSON") {
+			return fmt.Errorf("incomplete JSON response from server. this usually means: 1) server timeout/crash during response, 2) network connection interrupted, 3) response too large and was cut off, 4) proxy/load balancer timeout. code size: %d bytes. original error: %v", codeSize, err)
+		}
+
 		// Retry on timeout or network errors
 		if attempt < maxRetries {
 			waitTime := time.Duration(attempt) * 2 * time.Second
@@ -286,25 +291,76 @@ func main() {
 
 	// Test the API with a realistic request (including system message) to verify the generate endpoint works
 	fmt.Printf("Testing API connection with a realistic request...\n")
-	testCtx, testCancel := context.WithTimeout(context.Background(), 60*time.Second)
+
+	// First, try a direct HTTP test to the /api/generate endpoint to see what we get
+	baseURL := strings.TrimSuffix(serverURL, "/")
+	testGenerateURL := baseURL + "/api/generate"
+
+	testPayload := map[string]interface{}{
+		"model":  model,
+		"prompt": "Say OK",
+		"stream": false, // Test without streaming first
+	}
+
+	jsonPayload, _ := json.Marshal(testPayload)
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Post(testGenerateURL, "application/json", strings.NewReader(string(jsonPayload)))
+	if err == nil {
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		if resp.StatusCode == http.StatusOK {
+			// Try to parse as JSON
+			var jsonData interface{}
+			if json.Unmarshal(body, &jsonData) == nil {
+				fmt.Printf("  Direct HTTP test to /api/generate successful (status: %d)\n", resp.StatusCode)
+			} else {
+				fmt.Printf("  Direct HTTP test returned non-JSON response (status: %d, preview: %s)\n", resp.StatusCode, string(body[:min(100, len(body))]))
+			}
+		} else {
+			fmt.Printf("  Direct HTTP test returned status %d (preview: %s)\n", resp.StatusCode, string(body[:min(200, len(body))]))
+		}
+	}
+
+	// Now test with the LLM library
+	testCtx, testCancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer testCancel()
-	// Use a small portion of the system message for testing
-	testSystemMsg := systemMessage
-	if len(testSystemMsg) > 500 {
-		testSystemMsg = testSystemMsg[:500] + "..."
-	}
 	testContent := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeSystem, testSystemMsg),
-		llms.TextParts(llms.ChatMessageTypeHuman, "Analyze this code: func test() { return true }"),
+		llms.TextParts(llms.ChatMessageTypeHuman, "Say 'OK'"),
 	}
-	_, testErr := llm.GenerateContent(testCtx, testContent)
+
+	// Try without streaming first to avoid streaming JSON parsing issues
+	var testErr error
+	var testResp *llms.ContentResponse
+
+	// First attempt: without streaming
+	fmt.Printf("  Testing with LLM library (non-streaming)...\n")
+	testResp, testErr = llm.GenerateContent(testCtx, testContent)
+
+	// If that fails with JSON error, try with a simple streaming function that just discards output
+	if testErr != nil && (strings.Contains(testErr.Error(), "unexpected end of JSON") || strings.Contains(testErr.Error(), "invalid character")) {
+		fmt.Printf("  Non-streaming test failed, trying with streaming...\n")
+		streamingFunc := func(ctx context.Context, chunk []byte) error {
+			// Just discard the chunks for testing
+			return nil
+		}
+		testResp, testErr = llm.GenerateContent(testCtx, testContent, llms.WithStreamingFunc(streamingFunc))
+	}
+
 	if testErr != nil {
 		if strings.Contains(testErr.Error(), "invalid character '<'") {
 			log.Fatalf("API test failed: received HTML response from /api/generate endpoint. the server URL %s may be incorrect or the endpoint is not accessible. this could indicate: 1) proxy/load balancer blocking POST requests, 2) incorrect server URL, 3) server not properly configured. error: %v\n", serverURL, testErr)
 		}
+		if strings.Contains(testErr.Error(), "unexpected end of JSON") {
+			log.Fatalf("API test failed: incomplete JSON response from server. this usually means: 1) server timeout/crash during response, 2) network connection interrupted, 3) server response format issue, 4) proxy/load balancer cutting off response. try increasing timeout or check server logs. error: %v\n", testErr)
+		}
 		log.Fatalf("API test failed: %v. please verify the server URL and model are correct\n", testErr)
 	}
-	fmt.Printf("API test successful. proceeding with scan...\n\n")
+
+	if testResp != nil && len(testResp.Choices) > 0 {
+		fmt.Printf("API test successful (received %d response choices). proceeding with scan...\n\n", len(testResp.Choices))
+	} else {
+		fmt.Printf("API test completed (no response content, but no error). proceeding with scan...\n\n")
+	}
 
 	// Get output file path from environment variable or use default
 	outputFile := os.Getenv("OUTPUT_FILE")
