@@ -55,13 +55,13 @@ pipeline {
             }
         }
 
-        stage('PR creation') {
-            steps {
-                container('build') {
-                    sh 'python3 Scripts/Createpr.py'
-                }
-            }
-        }
+        // stage('PR creation') {
+        //     steps {
+        //         container('build') {
+        //             sh 'python3 Scripts/Createpr.py'
+        //         }
+        //     }
+        // }
     }
 
     post {
