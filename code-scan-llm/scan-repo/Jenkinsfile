@@ -25,12 +25,7 @@ pipeline {
                     limits:
                         cpu: "1"
                         memory: "1Gi"
-                volumeMounts:
-                    - name: workspace-vol
-                      mountPath: /home/jenkins/agent
-            volumes:
-              - name: workspace-vol
-                emptyDir: {}
+
         """
             }
         }
@@ -47,26 +42,26 @@ pipeline {
         stage('Install Go and Run Scan') {
             steps {
                 container('go'){
-                dir('code-scan-llm/scan-repo') {
-                    sh """
-                  
-                        # Initialize Go module if needed
-                        if [ ! -f go.mod ]; then
-                            go mod init code-scan-llm
-                        fi
-                        
-                        # Install dependencies
-                        go mod tidy
-                        
-                        # Run the scan
-                        export OLLAMA_MODEL="${params.OLLAMA_MODEL}"
-                        export OLLAMA_SERVER_URL="${params.OLLAMA_SERVER_URL}"
-                        if [ -n "${params.OUTPUT_FILE}" ]; then
-                            export OUTPUT_FILE="${params.OUTPUT_FILE}"
-                        fi
-                        go run main.go "${params.REPO_URL}"
-                    """
-                    }
+                    dir('code-scan-llm/scan-repo') {
+                        sh """
+                    
+                            # Initialize Go module if needed
+                            if [ ! -f go.mod ]; then
+                                go mod init code-scan-llm
+                            fi
+                            
+                            # Install dependencies
+                            go mod tidy
+                            
+                            # Run the scan
+                            export OLLAMA_MODEL="${params.OLLAMA_MODEL}"
+                            export OLLAMA_SERVER_URL="${params.OLLAMA_SERVER_URL}"
+                            if [ -n "${params.OUTPUT_FILE}" ]; then
+                                export OUTPUT_FILE="${params.OUTPUT_FILE}"
+                            fi
+                            go run main.go "${params.REPO_URL}"
+                        """
+                        }
                 }
             }
         }
