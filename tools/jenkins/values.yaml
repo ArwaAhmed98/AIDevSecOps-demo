@@ -24,13 +24,13 @@ jenkins:
 
    
 # JCasC Configuration under controller
-    JCasC:
-      enabled: true
-      defaultConfig: true
-      configScripts:
-        welcome-message: |-
-          jenkins:
-            systemMessage: "Welcome to DEMO CI server. This Jenkins is managed by DEMO team \n\n"
+  JCasC:
+    enabled: true
+    defaultConfig: true
+    configScripts:
+      welcome-message: |-
+        jenkins:
+          systemMessage: "Welcome to DEMO CI server. This Jenkins is managed by DEMO team \n\n"
 
 
     image:
@@ -68,7 +68,6 @@ jenkins:
     storageClass: "standard"
     size: "50Gi"
 
-
   sidecars:
     configAutoReload:
       enabled: true
@@ -80,7 +79,6 @@ jenkins:
 
   serviceAccountAgent:
     create: true
-
 
   agent:
     enabled: true
