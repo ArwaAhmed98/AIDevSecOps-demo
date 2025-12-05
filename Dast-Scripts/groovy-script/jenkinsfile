@@ -11,7 +11,7 @@ pipeline {
             spec:
                 containers:
                   - name: build
-                    image: fadifarid/redhat-python-zap:latest
+                    image: fadifarid/redhat-python
                     command: [ "sh", "-c", "sleep infinity" ]
                     tty: true
                     securityContext:
@@ -42,6 +42,7 @@ pipeline {
         stage('Zap-scan') {
             steps {
                 container('build') {
+                    sh 'cd /opt/zaproxy'
                     sh './zap.sh -daemon -port 8080 -config api.key=vh7bqrauhothh2b0en7r53se5i'
                     sh 'python3 Scripts/Zap-scan.py --repo "$REPONAME"'
                 }

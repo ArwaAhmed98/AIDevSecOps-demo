@@ -1,5 +1,6 @@
 jenkins:
   controller:
+
     installPlugins:
       - configuration-as-code:1998.v3e50e6e9d9d3
       - git:5.8.0

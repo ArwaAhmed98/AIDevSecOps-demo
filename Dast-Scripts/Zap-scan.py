@@ -1,4 +1,4 @@
-import torch
+
 import time
 import requests
 from zapv2 import ZAPv2
@@ -44,7 +44,7 @@ for item in new_report:
     solution_provided = item["solution"]
     url = "http://172.22.24.2:8080/api/generate"
     payload = {
-     "model": "llama3",
+     "model": "llama3.2:1b",
      "prompt": (
       f"Vulnerability Reference: {reference}\n"
       f"Description: {description}\n"
