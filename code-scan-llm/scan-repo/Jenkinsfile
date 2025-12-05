@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+    
+    parameters {
+        string(name: 'REPO_URL', defaultValue: 'https://github.com/user/repo', description: 'GitHub repository URL to scan')
+        string(name: 'OLLAMA_MODEL', defaultValue: 'llama3.2:1b', description: 'Ollama model to use')
+        string(name: 'OLLAMA_SERVER_URL', defaultValue: 'http://localhost:11434', description: 'Ollama server URL')
+        string(name: 'OUTPUT_FILE', defaultValue: '', description: 'Output file name (optional)')
+    }
+    
+    stages {
+        stage('Install Go and Run Scan') {
+            steps {
+                dir('code-scan-llm/scan-repo') {
+                    sh """
+                        # Install Go if not present
+                        if ! command -v go &> /dev/null; then
+                            wget -q https://go.dev/dl/go1.21.5.linux-amd64.tar.gz
+                            sudo rm -rf /usr/local/go
+                            sudo tar -C /usr/local -xzf go1.21.5.linux-amd64.tar.gz
+                            rm go1.21.5.linux-amd64.tar.gz
+                            export PATH=/usr/local/go/bin:\$PATH
+                        fi
+                        
+                        # Initialize Go module if needed
+                        if [ ! -f go.mod ]; then
+                            go mod init code-scan-llm
+                        fi
+                        
+                        # Install dependencies
+                        go mod tidy
+                        
+                        # Run the scan
+                        export OLLAMA_MODEL="${params.OLLAMA_MODEL}"
+                        export OLLAMA_SERVER_URL="${params.OLLAMA_SERVER_URL}"
+                        if [ -n "${params.OUTPUT_FILE}" ]; then
+                            export OUTPUT_FILE="${params.OUTPUT_FILE}"
+                        fi
+                        go run main.go "${params.REPO_URL}"
+                    """
+                }
+            }
+        }
+        
+        stage('Archive Results') {
+            steps {
+                dir('code-scan-llm/scan-repo') {
+                    archiveArtifacts artifacts: 'scan-results-*.txt', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+}

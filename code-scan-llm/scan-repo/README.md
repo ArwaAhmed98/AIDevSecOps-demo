@@ -68,7 +68,7 @@ OLLAMA_MODEL="llama3.1:8b" OLLAMA_SERVER_URL="http://localhost:11434" go run mai
 1. Clones the specified GitHub repository to a temporary directory
 2. Scans all supported code files (.go, .py, .sql, .js, .java, .cpp, .c, .rb, .php, .ts, .sh)
 3. Sends each file to the LLM for security analysis
-4. Displays vulnerability analysis results
+4. Displays vulnerability analysis results to both stdout and a file
 
 ## Configuration
 
@@ -84,6 +84,24 @@ OLLAMA_MODEL="llama3.1:8b" OLLAMA_SERVER_URL="http://localhost:11434" go run mai
   export OLLAMA_SERVER_URL="http://localhost:11434"
   ```
 
+- **`OUTPUT_FILE`**: The output file path for scan results (default: `scan-results-YYYYMMDD-HHMMSS.txt`)
+  ```bash
+  export OUTPUT_FILE="my-scan-results.txt"
+  ```
+  
+  If not specified, a timestamped filename will be generated automatically (e.g., `scan-results-20240115-143022.txt`)
+
 ### Other Configuration
 
 - **System Message**: Edit `systemmessage.txt` to customize the security analysis prompt
+
+## Output
+
+The program writes scan results to both:
+- **Standard output (stdout)**: For real-time viewing
+- **Output file**: For saving results (specified via `OUTPUT_FILE` or auto-generated)
+
+The output file includes:
+- Scan metadata (repository URL, scan date)
+- Analysis results for each file scanned
+- Separators between file analyses

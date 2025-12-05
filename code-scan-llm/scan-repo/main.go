@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/czc09/langchaingo/llms"
@@ -31,7 +33,7 @@ func cloneRepo(repoURL, localPath string) error {
 }
 
 // analyzeCode sends the code and system message to the LLM for analysis.
-func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string) error {
+func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string, outputWriter io.Writer) error {
 	content := []llms.MessageContent{
 		llms.TextParts(llms.ChatMessageTypeSystem, systemMessage),
 		llms.TextParts(llms.ChatMessageTypeHuman, code),
@@ -39,7 +41,13 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 
 	// Streaming function to handle LLM output
 	streamingFunc := func(ctx context.Context, chunk []byte) error {
-		fmt.Print(string(chunk))
+		// Write to output writer (which includes both stdout and file)
+		if outputWriter != nil {
+			_, err := outputWriter.Write(chunk)
+			if err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -49,7 +57,7 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 }
 
 // scanRepo scans a GitHub repository for security vulnerabilities.
-func scanRepo(ctx context.Context, llm llms.Model, repoURL, systemMessage string) error {
+func scanRepo(ctx context.Context, llm llms.Model, repoURL, systemMessage string, outputWriter io.Writer) error {
 	// Create a temporary directory to clone the repository
 	tempDir, err := os.MkdirTemp("", "repo-*")
 	if err != nil {
@@ -96,9 +104,19 @@ func scanRepo(ctx context.Context, llm llms.Model, repoURL, systemMessage string
 		}
 
 		// Analyze the file
-		fmt.Printf("Analyzing file: %s\n", path)
-		if err := analyzeCode(ctx, llm, systemMessage, code); err != nil {
+		fileInfo := fmt.Sprintf("Analyzing file: %s\n", path)
+		if outputWriter != nil {
+			outputWriter.Write([]byte(fileInfo))
+		}
+
+		if err := analyzeCode(ctx, llm, systemMessage, code, outputWriter); err != nil {
 			return fmt.Errorf("failed to analyze file %s: %v", path, err)
+		}
+
+		// Add separator between files
+		separator := "\n" + strings.Repeat("=", 80) + "\n\n"
+		if outputWriter != nil {
+			outputWriter.Write([]byte(separator))
 		}
 
 		return nil
@@ -149,12 +167,40 @@ func main() {
 		log.Fatalf("Failed to initialize LLM: %v\n", err)
 	}
 
+	// Get output file path from environment variable or use default
+	outputFile := os.Getenv("OUTPUT_FILE")
+	if outputFile == "" {
+		// Generate default filename based on timestamp
+		timestamp := time.Now().Format("20060102-150405")
+		outputFile = fmt.Sprintf("scan-results-%s.md", timestamp)
+	}
+
+	// Create/open output file
+	file, err := os.Create(outputFile)
+	if err != nil {
+		log.Fatalf("Failed to create output file: %v\n", err)
+	}
+	defer file.Close()
+
+	// Create a multi-writer to write to both stdout and file
+	outputWriter := io.MultiWriter(os.Stdout, file)
+
+	// Write header to both stdout and file
+	header := fmt.Sprintf("Security Scan Results\nRepository: %s\nScan Date: %s\n%s\n\n",
+		repoURL,
+		time.Now().Format("2006-01-02 15:04:05"),
+		strings.Repeat("=", 80))
+	outputWriter.Write([]byte(header))
+	fmt.Printf("Writing output to: %s\n\n", outputFile)
+
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute) // Adjust timeout as needed
 	defer cancel()
 
 	// Scan the GitHub repository
-	if err := scanRepo(ctx, llm, repoURL, systemMessage); err != nil {
+	if err := scanRepo(ctx, llm, repoURL, systemMessage, outputWriter); err != nil {
 		log.Fatalf("Error scanning repository: %v\n", err)
 	}
+
+	fmt.Printf("\n\nScan completed! Results saved to: %s\n", outputFile)
 }
