@@ -55,8 +55,13 @@ func checkOllamaServer(serverURL, model string) error {
 		return fmt.Errorf("failed to read response from Ollama server: %v", err)
 	}
 
-	// Check if response is HTML (error page)
+	// Check if response is HTML (error page - likely nginx)
 	if len(body) > 0 && body[0] == '<' {
+		bodyStr := string(body)
+		// Detect nginx error pages
+		if strings.Contains(bodyStr, "nginx") || strings.Contains(bodyStr, "413") || strings.Contains(bodyStr, "502") || strings.Contains(bodyStr, "504") {
+			return fmt.Errorf("nginx proxy returned HTML error page. common causes: 1) proxy_buffers too small, 2) client_max_body_size too small, 3) proxy_read_timeout too short, 4) request too large. response preview: %s. nginx configuration needed: increase proxy_buffers, client_max_body_size, and proxy_read_timeout", string(body[:min(300, len(body))]))
+		}
 		return fmt.Errorf("ollama server at %s returned HTML instead of JSON. this usually means the server URL is incorrect or the server is not an Ollama instance. response preview: %s", serverURL, string(body[:min(200, len(body))]))
 	}
 
@@ -169,10 +174,10 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 
 		// Don't retry on HTML/JSON parsing errors - these are configuration issues
 		if strings.Contains(err.Error(), "invalid character '<'") {
-			// Try with a shorter system message as a last resort
+			// Try with a shorter system message as a last resort (nginx buffer size workaround)
 			if attempt == 1 && systemMsgSize > 2000 {
-				log.Printf("warning: received HTML response with full system message (%d bytes), trying with shortened system message...", systemMsgSize)
-				shortSystemMsg := systemMessage[:1000] + "\n\n[System message truncated due to size constraints. Please analyze the code for security vulnerabilities.]"
+				log.Printf("warning: received HTML response (likely nginx error) with full system message (%d bytes), trying with shortened system message to work around nginx buffer limits...", systemMsgSize)
+				shortSystemMsg := systemMessage[:1000] + "\n\n[System message truncated due to nginx proxy buffer constraints. Please analyze the code for security vulnerabilities.]"
 				shortContent := []llms.MessageContent{
 					llms.TextParts(llms.ChatMessageTypeSystem, shortSystemMsg),
 					llms.TextParts(llms.ChatMessageTypeHuman, code),
@@ -184,12 +189,18 @@ func analyzeCode(ctx context.Context, llm llms.Model, systemMessage, code string
 					return nil // Success with shortened message
 				}
 			}
-			return fmt.Errorf("received HTML response instead of JSON from Ollama server during API call. this usually means: 1) the /api/generate or /api/chat endpoint is not working, 2) server returned an error page, 3) there's a proxy/load balancer issue, 4) request payload too large. payload size: %d bytes (system: %d, code: %d). original error: %v", totalPayloadSize, systemMsgSize, codeSize, err)
+			// Provide nginx-specific error message
+			nginxHint := ""
+			if totalPayloadSize > 10000 {
+				nginxHint = " nginx configuration issue: likely proxy_buffers or client_max_body_size too small. recommended nginx config: proxy_buffers 16 64k; client_max_body_size 10m; proxy_read_timeout 300s;"
+			}
+			return fmt.Errorf("received HTML response instead of JSON from Ollama server (likely nginx proxy error). payload size: %d bytes (system: %d, code: %d).%s original error: %v", totalPayloadSize, systemMsgSize, codeSize, nginxHint, err)
 		}
 
-		// Handle incomplete JSON responses
+		// Handle incomplete JSON responses (often nginx timeout)
 		if strings.Contains(err.Error(), "unexpected end of JSON") {
-			return fmt.Errorf("incomplete JSON response from server. this usually means: 1) server timeout/crash during response, 2) network connection interrupted, 3) response too large and was cut off, 4) proxy/load balancer timeout. payload size: %d bytes. original error: %v", totalPayloadSize, err)
+			nginxHint := " if behind nginx, increase proxy_read_timeout and proxy_send_timeout (e.g., 300s)."
+			return fmt.Errorf("incomplete JSON response from server (likely nginx timeout). this usually means: 1) nginx proxy_read_timeout too short, 2) server timeout/crash during response, 3) network connection interrupted, 4) response too large and was cut off.%s payload size: %d bytes. original error: %v", nginxHint, totalPayloadSize, err)
 		}
 
 		// Retry on timeout or network errors
@@ -382,10 +393,10 @@ func main() {
 
 	if testErr != nil {
 		if strings.Contains(testErr.Error(), "invalid character '<'") {
-			log.Fatalf("API test failed: received HTML response from /api/generate endpoint. the server URL %s may be incorrect or the endpoint is not accessible. this could indicate: 1) proxy/load balancer blocking POST requests, 2) incorrect server URL, 3) server not properly configured. error: %v\n", serverURL, testErr)
+			log.Fatalf("API test failed: received HTML response from /api/generate endpoint (likely nginx error). the server URL %s is behind nginx. nginx configuration needed: increase proxy_buffers (e.g., 'proxy_buffers 16 64k;'), client_max_body_size (e.g., 'client_max_body_size 10m;'), and proxy_read_timeout (e.g., 'proxy_read_timeout 300s;'). error: %v\n", serverURL, testErr)
 		}
 		if strings.Contains(testErr.Error(), "unexpected end of JSON") {
-			log.Fatalf("API test failed: incomplete JSON response from server. this usually means: 1) server timeout/crash during response, 2) network connection interrupted, 3) server response format issue, 4) proxy/load balancer cutting off response. try increasing timeout or check server logs. error: %v\n", testErr)
+			log.Fatalf("API test failed: incomplete JSON response from server (likely nginx timeout). if behind nginx, increase proxy_read_timeout and proxy_send_timeout (e.g., 300s). error: %v\n", testErr)
 		}
 		log.Fatalf("API test failed: %v. please verify the server URL and model are correct\n", testErr)
 	}
