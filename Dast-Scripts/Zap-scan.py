@@ -16,7 +16,7 @@ args = parser.parse_args()
 repo_input = args.repo
 # Take target URL as input
 #target = "http://44.192.94.78:5000"
- target = "http://www.itsecgames.com"
+target = "http://www.itsecgames.com"
 #code = "https://github.com/Fadi-Farid/Dast-tool.git"
 code = repo_input
 # Crawl and scan web application
