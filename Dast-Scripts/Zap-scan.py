@@ -56,6 +56,12 @@ for item in new_report:
 
     solution = requests.post(url, json=payload)
 
+    code = solution.status_code
+    text = solution.text
+
+
+    print(f"[LLM API] Status Code: {code}")
+    print(f"[LLM API] Response Text:\n{text}\n{'-'*60}")
 
     response_json = solution.json()
     readable_output = response_json["response"].encode().decode("unicode_escape")
