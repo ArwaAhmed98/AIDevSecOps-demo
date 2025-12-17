@@ -16,7 +16,7 @@ spec:
   source:
     repoURL: {{ $tool.repo_url }}
     targetRevision: main
-    path: tools/{{ $tool.name }}
+    path: resources/tools/{{ $tool.name }}
     helm:
       valueFiles:
         - {{ $tool.valuefile | default "values.yaml" }}

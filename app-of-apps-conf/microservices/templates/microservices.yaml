@@ -59,7 +59,7 @@ spec:
     helm:
       valueFiles:
         - "./microservices/{{ . }}/values-{{ $env }}.yaml"
-    path: services-chart
+    path: resources/services-chart
   syncPolicy:
     automated:
       prune: true

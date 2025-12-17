@@ -3,9 +3,9 @@ namespace: demo
 release: "demo-app"
 
 image:
-  repository: hashicorp/http-echo
+  repository: ar5678/aidevsecops
   pullPolicy: IfNotPresent
-  tag: "0.2.3"
+  tag: "1.0.0"
 
 imagePullSecrets: []
 
