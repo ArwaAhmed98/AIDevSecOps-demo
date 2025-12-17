@@ -47,6 +47,7 @@ def call(String AGENT = 'agents/default.yaml') {
                         def repoName = env.GIT_URL.tokenize('/').last().replaceAll(/\.git$/, '')
                         echo "Repository name: ${repoName}"
                         env.repoName = repoName.toLowerCase()
+                        echo "Repository name: ${env.repoName}"
                     }
                 }
             }
