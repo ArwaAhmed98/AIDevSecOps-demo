@@ -12,30 +12,32 @@ def call(String AGENT = 'agents/default.yaml') {
         string(name: 'OLLAMA_SERVER_URL', defaultValue: 'http://172.22.24.2:8080', description: 'Ollama server URL')
         string(name: 'OUTPUT_FILE', defaultValue: '', description: 'Output file name (optional)')
         string(name: 'REPONAME', defaultValue: 'https://github.com/MostafaAnas/go-cli-todo', description: 'Repository name for DAST(e.g., org/repo or repo)')
+        booleanParam(name: 'RUN_RAISEPR', defaultValue: false, description: 'Tick to run RaisePR stage')
+
         }
         environment {
             DAST_API = credentials('DAST-API')
         }
 
         stages {
-            // stage('buildpy') {
-            //     steps {
-            //         script {
-            //             container('build') {
-            //                 DAST()
-            //             }
-            //         }
-            //     }
-            // }
-            // stage('UT & Integration testing') {
-            //     steps {
-            //         script {
-            //             container('build') {
-            //                 UT()
-            //             }
-            //         }
-            //     }
-            // }
+            stage('buildpy') {
+                steps {
+                    script {
+                        container('buildpy') {
+                            buildpy()
+                        }
+                    }
+                }
+            }
+            stage('UT & Integration testing') {
+                steps {
+                    script {
+                        container('build') {
+                            UT()
+                        }
+                    }
+                }
+            }
             // stage('SAST') {
             //     steps {
             //         script {
@@ -45,24 +47,24 @@ def call(String AGENT = 'agents/default.yaml') {
             //         }
             //     }
             // }
-            // stage('dockerize') {
-            //     steps {
-            //         script {
-            //             container('build') {
-            //                 dockerize(env.DAST_API)
-            //             }
-            //         }
-            //     }
-            // }
-            // stage('SecurityScan - DockerImage') {
-            //     steps {
-            //         script {
-            //             container('build') {
-            //                 SecurityScan()
-            //             }
-            //         }
-            //     }
-            // }
+            stage('dockerize') {
+                steps {
+                    script {
+                        container('build') {
+                            dockerize(env.DAST_API)
+                        }
+                    }
+                }
+            }
+            stage('SecurityScan - DockerImage') {
+                steps {
+                    script {
+                        container('build') {
+                            SecurityScan()
+                        }
+                    }
+                }
+            }
             // stage('GitOps') {
             //     steps {
             //         script {
@@ -72,16 +74,19 @@ def call(String AGENT = 'agents/default.yaml') {
             //         }
             //     }
             // }
-            stage('DAST') {
-                steps {
-                    script {
-                        container('build') {
-                            DAST(params,env.DAST_API)
-                        }
-                    }
-                }
-            }
+            // stage('DAST') {
+            //     steps {
+            //         script {
+            //             container('build') {
+            //                 DAST(params,env.DAST_API)
+            //             }
+            //         }
+            //     }
+            // }
             stage('RaisePR') {
+                when {
+                    expression { params.RUN_RAISEPR }  // Only run if checkbox is ticked
+                }
                 steps {
                     script {
                         container('build') {
