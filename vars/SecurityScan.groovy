@@ -1,5 +1,5 @@
 def call(){
     sh """
-    trivy image --severity HIGH,CRITICAL python-demo-app:1.0 || true
+    trivy image --severity HIGH,CRITICAL python-demo-app:${env.BUILD_NUMBER} || true
     """
 }
