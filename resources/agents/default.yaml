@@ -47,7 +47,7 @@ spec:
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
-    - name: dockerize
+    - name: docker-dind
       image: docker:dind
       tty: true
       command:
