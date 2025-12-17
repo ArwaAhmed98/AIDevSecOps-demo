@@ -15,11 +15,10 @@ def call(Map params = [:]) {
         'nginx-config.md'
     ]
 
-    sh 'mkdir -p code-scan-llm/scan-repo'
 
     files.each { file ->
         writeFile(
-            file: "code-scan-llm/scan-repo/${file}",
+            file: "./${file}",
             text: libraryResource("${resourceBase}/${file}")
         )
     }
@@ -57,6 +56,6 @@ def call(Map params = [:]) {
     // -----------------------------
     // Archive results
     // -----------------------------
-    archiveArtifacts artifacts: 'code-scan-llm/scan-repo/scan-results-*.*',
+    archiveArtifacts artifacts: './scan-results-*.*',
                      allowEmptyArchive: true
 }
