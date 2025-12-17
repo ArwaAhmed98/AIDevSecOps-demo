@@ -15,9 +15,7 @@ def call (Map params = [:], String API){
                 text: libraryResource("${resourceBase}/${file}")
             )
         }
-
         sh """
-            
             cd /opt/zaproxy
             ls -la
             ./zap.sh -daemon -port 8080 -config api.key=${API} &
