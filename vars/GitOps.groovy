@@ -1,21 +1,15 @@
-def call(){
+def call(Map params = [:]){
     withCredentials([usernamePassword(credentialsId: 'GHE', 
                     usernameVariable: 'USERNAME', 
                     passwordVariable: 'PASSWORD')]) {
     
       
-    def resourceBase = 'code-scan-llm/scan-repo'
+    def resourceBase = 'services-chart/microservices/demo-app'
     def files = [
-        'go.mod',
-        'go.sum',
-        'main.go',
-        'query.py',
-        'systemmessage.txt',
-        'README.md',
-        'nginx-config.md'
+        'values-demo.yaml'
     ]
 
-    dir('code-scan-llm/scan-repo') {
+    dir('services-chart/microservices/demo-app') {
         files.each { file ->
             writeFile(
                 file: "./${file}",
@@ -23,8 +17,14 @@ def call(){
             )
         }
 
-                sh """
-                """
-            }
+        sh """
+        cat values-${Environment}.yaml | yq eval -o=json - | \
+        jq --arg tag "${env.BUILD_NUMBER}" '.image.tag = $tag' | \
+        yq eval -P - > values-${Environment}.yaml
+        cat values-${Environment}.yaml
+     
+        git add .; git commit -m "Update the tag automated from Jenkins"; git push;
+        """
+        }
     }
 }

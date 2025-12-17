@@ -15,7 +15,12 @@ spec:
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
-
+    - name: jq
+      image: giawestcom/jq-git:latest
+      command: ["sh", "-c", "sleep infinity"]
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
     - name: sast
       image: golang:1.23-bookworm
       tty: true

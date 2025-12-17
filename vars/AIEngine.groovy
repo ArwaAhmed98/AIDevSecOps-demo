@@ -7,6 +7,7 @@ def call(String AGENT = 'agents/default.yaml') {
             }
         }
         parameters {
+        cstring(name: 'Environment', defaultValue: 'demo', description: 'Env to deploy on')
         string(name: 'REPO_URL', defaultValue: 'https://github.com/MostafaAnas/go-cli-todo', description: 'GitHub repository URL to scan')
         string(name: 'OLLAMA_MODEL', defaultValue: 'llama3.2:1b', description: 'Ollama model to use')
         string(name: 'OLLAMA_SERVER_URL', defaultValue: 'http://172.22.24.2:8080', description: 'Ollama server URL')
@@ -65,15 +66,15 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
-            // stage('GitOps') {
-            //     steps {
-            //         script {
-            //             container('build') {
-            //                 GitOps(env.DAST_API)
-            //             }
-            //         }
-            //     }
-            // }
+            stage('GitOps') {
+                steps {
+                    script {
+                        container('jq') {
+                            GitOps(params)
+                        }
+                    }
+                }
+            }
             // stage('DAST') {
             //     steps {
             //         script {
