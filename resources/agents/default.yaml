@@ -45,7 +45,7 @@ spec:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
     - name: trivy
-      image: aquasec/trivy:canary
+      image: aquasec/trivy:0.67.2
       tty: true
       command:
         - cat
