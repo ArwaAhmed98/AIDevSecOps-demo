@@ -1,25 +1,8 @@
 def call(Map params = [:]) {
 
-    // -----------------------------
-    // Handle parameters & defaults
-    // -----------------------------
-    def repoUrl        = params.REPO_URL ?: this.params.REPO_URL ?: 'https://github.com/MostafaAnas/go-cli-todo'
-    def ollamaModel    = params.OLLAMA_MODEL ?: 'llama3'
-    def ollamaServer   = params.OLLAMA_SERVER_URL ?: 'http://ollama:11434'
-    def outputFile     = params.OUTPUT_FILE ?: ''
-
-    if (!repoUrl?.trim()) {
-        error "REPO_URL is required"
-    }
 
     // -----------------------------
-    // Temporary workspace per build
-    // -----------------------------
-    def tmpDir = "${env.WORKSPACE}/tmp-scan-${BUILD_NUMBER}"
-    sh "mkdir -p ${tmpDir}"
-
-    // -----------------------------
-    // Shared library resource base
+    // Extract shared-lib resources
     // -----------------------------
     def resourceBase = 'code-scan-llm/scan-repo'
     def files = [
@@ -32,17 +15,19 @@ def call(Map params = [:]) {
         'nginx-config.md'
     ]
 
-    // -----------------------------
-    // Extract resources to tmpDir
-    // -----------------------------
+    sh 'mkdir -p code-scan-llm/scan-repo'
+
     files.each { file ->
-        writeFile file: "${tmpDir}/${file}", text: libraryResource("${resourceBase}/${file}")
+        writeFile(
+            file: "code-scan-llm/scan-repo/${file}",
+            text: libraryResource("${resourceBase}/${file}")
+        )
     }
 
     // -----------------------------
-    // Run Go SAST scan
+    // Run scan
     // -----------------------------
-    dir(tmpDir) {
+    dir('code-scan-llm/scan-repo') {
         sh """
             set -e
             echo "Workspace: \$(pwd)"
@@ -57,20 +42,21 @@ def call(Map params = [:]) {
             go mod tidy
 
             # Export environment variables
-            export OLLAMA_MODEL="${ollamaModel}"
-            export OLLAMA_SERVER_URL="${ollamaServer}"
+            export OLLAMA_MODEL="${params.OLLAMA_MODEL}"
+            export OLLAMA_SERVER_URL="${params.OLLAMA_SERVER_URL}"
 
-            if [ -n "${outputFile}" ]; then
-                export OUTPUT_FILE="${outputFile}"
+            if [ -n "${params.OUTPUT_FILE}" ]; then
+                export OUTPUT_FILE="${params.OUTPUT_FILE}"
             fi
 
             # Run SAST scan
-            go run main.go "${repoUrl}"
+            go run main.go "${params.REPO_URL}"
         """
     }
 
     // -----------------------------
     // Archive results
     // -----------------------------
-    archiveArtifacts artifacts: "${tmpDir}/scan-results-*.*", allowEmptyArchive: true
+    archiveArtifacts artifacts: 'code-scan-llm/scan-repo/scan-results-*.*',
+                     allowEmptyArchive: true
 }
