@@ -1,16 +1,5 @@
 def call(Map params = [:]) {
 
-    // -----------------------------
-    // Defaults
-    // -----------------------------
-    params.OLLAMA_MODEL      = params.get('OLLAMA_MODEL', 'llama3')
-    params.OLLAMA_SERVER_URL = params.get('OLLAMA_SERVER_URL', 'http://ollama:11434')
-    params.OUTPUT_FILE       = params.get('OUTPUT_FILE', '')
-    params.REPO_URL          = params.get('REPO_URL', '')
-
-    if (!params.REPO_URL?.trim()) {
-        error "REPO_URL is required"
-    }
 
     // -----------------------------
     // Extract shared-lib resources

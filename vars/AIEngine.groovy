@@ -23,7 +23,7 @@ def call(String AGENT = 'agents/default.yaml') {
                 steps {
                     script {
                         container('go') {
-                            SAST()
+                            SAST(params)
                         }
                     }
                 }
