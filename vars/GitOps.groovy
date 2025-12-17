@@ -5,7 +5,7 @@ def call(Map params = [:]){
         
         sh """
         git clone https://${PASSWORD}@github.vodafone.com/VFCOM-CICD/AIDevSecOps-demo.git
-        cd resources/services-chart/microservices/${env.repoName}
+        cd AIDevSecOps-demo/resources/services-chart/microservices/${env.repoName}
         cat values-${params.ENV}.yaml | yq eval -o=json - | \
         jq --arg tag "${env.BUILD_NUMBER}" '.image.tag = \$tag' | \
         yq eval -P - > values-${params.ENV}.yaml
