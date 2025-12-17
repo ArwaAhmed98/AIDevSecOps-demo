@@ -2,22 +2,9 @@ def call(Map params = [:]){
     withCredentials([usernamePassword(credentialsId: 'GHE', 
                     usernameVariable: 'USERNAME', 
                     passwordVariable: 'PASSWORD')]) {
-    
-      
-    def resourceBase = 'services-chart/microservices/demo-app'
-    def files = [
-        'values-demo.yaml'
-    ]
-
-    dir('services-chart/microservices/demo-app') {
-        files.each { file ->
-            writeFile(
-                file: "./${file}",
-                text: libraryResource("${resourceBase}/${file}")
-            )
-        }
-
         sh """
+        git clone https://${PASSWORD}@github.vodafone.com/VFCOM-CICD/AIDevSecOps-demo.git
+        cd resources/services-chart/microservices/
         cat values-${params.ENV}.yaml | yq eval -o=json - | \
         jq --arg tag "${env.BUILD_NUMBER}" '.image.tag = \$tag' | \
         yq eval -P - > values-${params.ENV}.yaml
@@ -27,4 +14,3 @@ def call(Map params = [:]){
         """
         }
     }
-}

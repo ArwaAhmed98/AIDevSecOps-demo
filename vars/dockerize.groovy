@@ -1,5 +1,5 @@
 def call(){
-    IMAGE_NAME="ar5678/aidevsecops:${BUILD_NUMBER}"
+    IMAGE_NAME="ar5678/aidevsecops:${env.BUILD_NUMBER}"
     sh """
     ls -la /kaniko/.docker/
     # Kaniko command
