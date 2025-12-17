@@ -50,8 +50,8 @@ def call(String AGENT = 'agents/default.yaml') {
             stage('dockerize') {
                 steps {
                     script {
-                        container('build') {
-                            dockerize(env.DAST_API)
+                        container('dockerize') {
+                            dockerize()
                         }
                     }
                 }
@@ -59,7 +59,7 @@ def call(String AGENT = 'agents/default.yaml') {
             stage('SecurityScan - DockerImage') {
                 steps {
                     script {
-                        container('build') {
+                        container('trivy') {
                             SecurityScan()
                         }
                     }
