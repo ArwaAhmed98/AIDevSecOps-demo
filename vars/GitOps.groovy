@@ -12,7 +12,7 @@ def call(Map params = [:]){
         jq --arg tag "${env.BUILD_NUMBER}" '.image.tag = \$tag' | \
         yq eval -P - > values-${params.ENV}.yaml
         cat values-${params.ENV}.yaml
-     
+        git config --global user.name "arwa-abdlhalim"
         git add .; git commit -m "Update the tag automated from Jenkins"; git push;
         """
     }
