@@ -57,15 +57,15 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
-            stage('SecurityScan - DockerImage') {
-                steps {
-                    script {
-                        container('trivy') {
-                            SecurityScan()
-                        }
-                    }
-                }
-            }
+            // stage('SecurityScan - DockerImage') {
+            //     steps {
+            //         script {
+            //             container('trivy') {
+            //                 SecurityScan()
+            //             }
+            //         }
+            //     }
+            // }
             stage('GitOps') {
                 steps {
                     script {
