@@ -3,7 +3,7 @@ namespace: demo
 release: "demo-app"
 
 image:
-  repository: ar5678/aidevsecops
+  repository: ar5678/aidevsecops-app-demo
   pullPolicy: IfNotPresent
   tag: "1.0.0"
 

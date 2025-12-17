@@ -39,6 +39,17 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
+            stage('Set VARS'){
+                steps{
+                    script{
+                        
+                        echo "Full repository URL: ${env.GIT_URL}"
+                        def repoName = env.GIT_URL.tokenize('/').last().replaceAll(/\.git$/, '')
+                        echo "Repository name: ${repoName}"
+                        env.repoName = repoName.toLowerCase()
+                    }
+                }
+            }
             // stage('SAST') {
             //     steps {
             //         script {
