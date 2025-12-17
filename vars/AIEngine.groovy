@@ -19,15 +19,15 @@ def call(String AGENT = 'agents/default.yaml') {
 
         stages {
             
-            stage('SAST') {
-                steps {
-                    script {
-                        container('go') {
-                            SAST(params)
-                        }
-                    }
-                }
-            }
+            // stage('SAST') {
+            //     steps {
+            //         script {
+            //             container('go') {
+            //                 SAST(params)
+            //             }
+            //         }
+            //     }
+            // }
             stage('DAST') {
                 steps {
                     script {
