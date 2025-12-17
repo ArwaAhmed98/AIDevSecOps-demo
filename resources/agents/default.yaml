@@ -49,6 +49,8 @@ spec:
           mountPath: /home/jenkins/agent
     - name: docker-dind
       image: docker:dind
+      securityContext:
+        privileged: true
       tty: true
       command:
         - cat
