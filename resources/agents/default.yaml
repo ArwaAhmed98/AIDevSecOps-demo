@@ -5,7 +5,7 @@ metadata:
     jenkins: slave
 spec:
   containers:
-    - name: build
+    - name: dast
       image: fadifarid/redhat-python
       command: ["sh", "-c", "sleep infinity"]
       tty: true
@@ -16,7 +16,7 @@ spec:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
 
-    - name: go
+    - name: sast
       image: golang:1.23-bookworm
       tty: true
       command:
@@ -49,9 +49,12 @@ spec:
           mountPath: /home/jenkins/agent
     - name: kaniko
       image: gcr.io/kaniko-project/executor:latest
+      command: ["/busybox/sleep", "infinity"]
+      tty: true
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker/
+
   restartPolicy: Never
   volumes:
     - name: workspace-volume

@@ -41,7 +41,7 @@ def call(String AGENT = 'agents/default.yaml') {
             // stage('SAST') {
             //     steps {
             //         script {
-            //             container('go') {
+            //             container('sast') {
             //                 SAST(params)
             //             }
             //         }
@@ -77,7 +77,7 @@ def call(String AGENT = 'agents/default.yaml') {
             // stage('DAST') {
             //     steps {
             //         script {
-            //             container('build') {
+            //             container('dast') {
             //                 DAST(params,env.DAST_API)
             //             }
             //         }
