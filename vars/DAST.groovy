@@ -4,7 +4,6 @@ def call (Map params = [:], String API){
         'Createpr.py',
         'Zap-scan.py',
         'extract-code.py',
-        'groovy-script',
         'python.py'
     ]
 
