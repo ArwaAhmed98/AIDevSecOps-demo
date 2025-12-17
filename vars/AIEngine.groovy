@@ -76,7 +76,7 @@ def call(String AGENT = 'agents/default.yaml') {
                 steps {
                     script {
                         container('build') {
-                            DAST(env.DAST_API)
+                            DAST(params,env.DAST_API)
                         }
                     }
                 }
