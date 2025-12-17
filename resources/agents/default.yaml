@@ -54,6 +54,8 @@ spec:
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker/
+        - mountPath: /workspace
+          name: workspace
 
   restartPolicy: Never
   volumes:
@@ -62,3 +64,8 @@ spec:
     - name: kaniko-secret
       secret:
         secretName: kaniko-secret
+        items:
+        - key: .dockerconfigjson  
+          path: config.json       
+ 
+
