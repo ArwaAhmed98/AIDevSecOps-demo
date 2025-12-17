@@ -1,35 +1,36 @@
 apiVersion: v1
 kind: Pod
 metadata:
-labels:
+  labels:
     jenkins: slave
 spec:
-    containers:
-      - name: build
-        image: fadifarid/redhat-python
-        command: [ "sh", "-c", "sleep infinity" ]
-        tty: true
-        securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-        volumeMounts:
+  containers:
+    - name: build
+      image: fadifarid/redhat-python
+      command: ["sh", "-c", "sleep infinity"]
+      tty: true
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
-      - name: go
-        image: golang:1.23-bookworm
-        tty: true
-        command:
-            - cat
-        resources:
-            requests:
-                cpu: "200m"
-                memory: "512Mi"
-            limits:
-                cpu: "1"
-                memory: "1Gi"
-         volumeMounts:
-         - name: workspace-volume
-           mountPath: /home/jenkins/agent
-volumes:
-  - name: workspace-volume
-    emptyDir: {}
+
+    - name: go
+      image: golang:1.23-bookworm
+      tty: true
+      command:
+        - cat
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "512Mi"
+        limits:
+          cpu: "1"
+          memory: "1Gi"
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
+  volumes:
+    - name: workspace-volume
+      emptyDir: {}
