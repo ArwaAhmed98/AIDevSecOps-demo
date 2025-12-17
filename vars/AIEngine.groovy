@@ -18,7 +18,7 @@ def call(String AGENT = 'agents/default.yaml') {
         }
 
         stages {
-            // stage('build') {
+            // stage('buildpy') {
             //     steps {
             //         script {
             //             container('build') {
@@ -49,16 +49,16 @@ def call(String AGENT = 'agents/default.yaml') {
             //     steps {
             //         script {
             //             container('build') {
-            //                 DAST(env.DAST_API)
+            //                 dockerize(env.DAST_API)
             //             }
             //         }
             //     }
             // }
-            // stage('trivy') {
+            // stage('SecurityScan - DockerImage') {
             //     steps {
             //         script {
             //             container('build') {
-            //                 DAST(env.DAST_API)
+            //                 SecurityScan()
             //             }
             //         }
             //     }
@@ -67,7 +67,7 @@ def call(String AGENT = 'agents/default.yaml') {
             //     steps {
             //         script {
             //             container('build') {
-            //                 DAST(env.DAST_API)
+            //                 GitOps(env.DAST_API)
             //             }
             //         }
             //     }
@@ -77,6 +77,15 @@ def call(String AGENT = 'agents/default.yaml') {
                     script {
                         container('build') {
                             DAST(params,env.DAST_API)
+                        }
+                    }
+                }
+            }
+            stage('RaisePR') {
+                steps {
+                    script {
+                        container('build') {
+                            raisePR(params,env.DAST_API)
                         }
                     }
                 }

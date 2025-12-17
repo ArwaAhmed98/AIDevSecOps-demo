@@ -31,6 +31,31 @@ spec:
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
+    - name: buildpy
+      image: python:3.10
+      tty: true
+      command:
+        - cat
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
+    - name: trivy
+      image: aquasec/trivy:canary
+      tty: true
+      command:
+        - cat
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
+    - name: dockerize
+      image: docker:dind
+      tty: true
+      command:
+        - cat
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
+
     
   volumes:
     - name: workspace-volume
