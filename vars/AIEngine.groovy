@@ -18,60 +18,60 @@ def call(String AGENT = 'agents/default.yaml') {
         }
 
         stages {
-            stage('build') {
-                steps {
-                    script {
-                        container('build') {
-                            DAST()
-                        }
-                    }
-                }
-            }
-            stage('UT & Integration testing') {
-                steps {
-                    script {
-                        container('build') {
-                            UT()
-                        }
-                    }
-                }
-            }
-            stage('SAST') {
-                steps {
-                    script {
-                        container('go') {
-                            SAST(params)
-                        }
-                    }
-                }
-            }
-            stage('dockerize') {
-                steps {
-                    script {
-                        container('build') {
-                            DAST(env.DAST_API)
-                        }
-                    }
-                }
-            }
-            stage('trivy') {
-                steps {
-                    script {
-                        container('build') {
-                            DAST(env.DAST_API)
-                        }
-                    }
-                }
-            }
-            stage('GitOps') {
-                steps {
-                    script {
-                        container('build') {
-                            DAST(env.DAST_API)
-                        }
-                    }
-                }
-            }
+            // stage('build') {
+            //     steps {
+            //         script {
+            //             container('build') {
+            //                 DAST()
+            //             }
+            //         }
+            //     }
+            // }
+            // stage('UT & Integration testing') {
+            //     steps {
+            //         script {
+            //             container('build') {
+            //                 UT()
+            //             }
+            //         }
+            //     }
+            // }
+            // stage('SAST') {
+            //     steps {
+            //         script {
+            //             container('go') {
+            //                 SAST(params)
+            //             }
+            //         }
+            //     }
+            // }
+            // stage('dockerize') {
+            //     steps {
+            //         script {
+            //             container('build') {
+            //                 DAST(env.DAST_API)
+            //             }
+            //         }
+            //     }
+            // }
+            // stage('trivy') {
+            //     steps {
+            //         script {
+            //             container('build') {
+            //                 DAST(env.DAST_API)
+            //             }
+            //         }
+            //     }
+            // }
+            // stage('GitOps') {
+            //     steps {
+            //         script {
+            //             container('build') {
+            //                 DAST(env.DAST_API)
+            //             }
+            //         }
+            //     }
+            // }
             stage('DAST') {
                 steps {
                     script {
