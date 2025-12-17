@@ -85,7 +85,7 @@ def call(String AGENT = 'agents/default.yaml') {
                 steps {
                     script {
                         container('build') {
-                            raisePR(params,env.DAST_API)
+                            raisePR()
                         }
                     }
                 }
