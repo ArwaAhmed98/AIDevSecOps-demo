@@ -1,5 +1,5 @@
 def call(){
-        IMAGE_NAME= "${env.repoName}:${env.BUILD_NUMBER}"
+        IMAGE_NAME= "ar5678/${env.repoName}:${env.BUILD_NUMBER}"
         sh """
         ls -la /kaniko/.docker/
         /kaniko/executor \
