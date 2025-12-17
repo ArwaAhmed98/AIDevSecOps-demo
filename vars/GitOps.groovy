@@ -19,7 +19,7 @@ def call(Map params = [:]){
 
         sh """
         cat values-${Environment}.yaml | yq eval -o=json - | \
-        jq --arg tag "${env.BUILD_NUMBER}" '.image.tag = $tag' | \
+        jq --arg tag "${env.BUILD_NUMBER}" '.image.tag = \$tag' | \
         yq eval -P - > values-${Environment}.yaml
         cat values-${Environment}.yaml
      
