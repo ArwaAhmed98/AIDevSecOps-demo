@@ -22,6 +22,7 @@ def call (Map params = [:], String API){
             ls -la
             ./zap.sh -daemon -port 8080 -config api.key=${API} &
             sleep 160
+            cd -
             python3 ./Zap-scan.py --repo "${params.REPONAME}" || true
             python3 ./Zap-scan.py --repo "${params.REPONAME}"
         """
