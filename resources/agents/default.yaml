@@ -51,9 +51,6 @@ spec:
       image: docker:dind
       securityContext:
         privileged: true
-      tty: true
-      command:
-        - cat
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
