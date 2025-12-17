@@ -11,8 +11,8 @@ imagePullSecrets: []
 
 terminationGracePeriodSeconds: 20
 
-nameOverride: "backend-service"
-fullnameOverride: "backend-service"
+nameOverride: "aidevsecops-app-demo"
+fullnameOverride: "aidevsecops-app-demo"
 
 serviceAccount:
   create: false
@@ -32,8 +32,8 @@ securityContext:
 
 service:
   type: NodePort
-  port: 80
-  targetport: 5678
+  port: 5000
+  targetport: 5000
 
 ingress:
   enabled: false
@@ -57,7 +57,7 @@ resources:
 livenessProbe:
   httpGet:
     path: /
-    port: 5678
+    port: 5000
   initialDelaySeconds: 5
   periodSeconds: 10
   timeoutSeconds: 5
@@ -67,7 +67,7 @@ livenessProbe:
 readinessProbe:
   httpGet:
     path: /
-    port: 5678
+    port: 5000
   initialDelaySeconds: 2
   periodSeconds: 10
   timeoutSeconds: 5
