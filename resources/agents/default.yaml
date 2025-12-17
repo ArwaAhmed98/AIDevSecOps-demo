@@ -47,15 +47,15 @@ spec:
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
-    - name: docker-dind
-      image: docker:dind
-      securityContext:
-        privileged: true
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
       volumeMounts:
-        - name: workspace-volume
-          mountPath: /home/jenkins/agent
-
-    
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker/
+  restartPolicy: Never
   volumes:
     - name: workspace-volume
       emptyDir: {}
+    - name: kaniko-secret
+      secret:
+        secretName: kaniko-secret
