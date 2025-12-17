@@ -39,7 +39,7 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
-            stage('Set VARS'){
+            stage('Init'){
                 steps{
                     script{
                         
@@ -51,15 +51,15 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
-            // stage('SAST') {
-            //     steps {
-            //         script {
-            //             container('sast') {
-            //                 SAST(params)
-            //             }
-            //         }
-            //     }
-            // }
+            stage('SAST') {
+                steps {
+                    script {
+                        container('sast') {
+                            SAST(params)
+                        }
+                    }
+                }
+            }
             stage('dockerize') {
                 steps {
                     script {
@@ -69,15 +69,15 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
-            // stage('SecurityScan - DockerImage') {
-            //     steps {
-            //         script {
-            //             container('trivy') {
-            //                 SecurityScan()
-            //             }
-            //         }
-            //     }
-            // }
+            stage('SecurityScan - DockerImage') {
+                steps {
+                    script {
+                        container('trivy') {
+                            SecurityScan()
+                        }
+                    }
+                }
+            }
             stage('GitOps') {
                 steps {
                     script {
@@ -87,15 +87,15 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
-            // stage('DAST') {
-            //     steps {
-            //         script {
-            //             container('dast') {
-            //                 DAST(params,env.DAST_API)
-            //             }
-            //         }
-            //     }
-            // }
+            stage('DAST') {
+                steps {
+                    script {
+                        container('dast') {
+                            DAST(params,env.DAST_API)
+                        }
+                    }
+                }
+            }
             stage('RaisePR') {
                 when {
                     expression { params.RUN_RAISEPR }  // Only run if checkbox is ticked
