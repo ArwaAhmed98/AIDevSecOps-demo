@@ -8,6 +8,7 @@ def call(Map params = [:]) {
 
     sh """
         set -e
+        ls -R
         cd ${env.WORKSPACE}/code-scan-llm/scan-repo
         # Initialize Go module if needed
         if [ ! -f go.mod ]; then
