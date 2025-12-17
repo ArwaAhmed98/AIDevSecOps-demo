@@ -50,7 +50,7 @@ def call(String AGENT = 'agents/default.yaml') {
             stage('dockerize') {
                 steps {
                     script {
-                        container('dockerize') {
+                        container('docker-dind') {
                             dockerize()
                         }
                     }
