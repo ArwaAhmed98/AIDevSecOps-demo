@@ -15,7 +15,7 @@ def call(Map params = [:]) {
         'nginx-config.md'
     ]
 
-
+dir('code-scan-llm/scan-repo') {
     files.each { file ->
         writeFile(
             file: "./${file}",
@@ -26,9 +26,8 @@ def call(Map params = [:]) {
     // -----------------------------
     // Run scan
     // -----------------------------
-    dir('code-scan-llm/scan-repo') {
+    
         sh """
-            set -e
             echo "Workspace: \$(pwd)"
             ls -la
 
