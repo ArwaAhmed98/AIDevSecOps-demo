@@ -21,6 +21,18 @@ def call(String AGENT = 'agents/default.yaml') {
         }
 
         stages {
+            stage('Init'){
+                steps{
+                    script{
+                        
+                        echo "Full repository URL: ${env.GIT_URL}"
+                        def repoName = env.GIT_URL.tokenize('/').last().replaceAll(/\.git$/, '')
+                        echo "Repository name: ${repoName}"
+                        env.repoName = repoName.toLowerCase()
+                        echo "Repository name: ${env.repoName}"
+                    }
+                }
+            }
             stage('buildpy') {
                 steps {
                     script {
@@ -36,18 +48,6 @@ def call(String AGENT = 'agents/default.yaml') {
                         container('build') {
                             UT()
                         }
-                    }
-                }
-            }
-            stage('Init'){
-                steps{
-                    script{
-                        
-                        echo "Full repository URL: ${env.GIT_URL}"
-                        def repoName = env.GIT_URL.tokenize('/').last().replaceAll(/\.git$/, '')
-                        echo "Repository name: ${repoName}"
-                        env.repoName = repoName.toLowerCase()
-                        echo "Repository name: ${env.repoName}"
                     }
                 }
             }

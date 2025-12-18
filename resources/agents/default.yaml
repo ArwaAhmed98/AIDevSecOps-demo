@@ -46,6 +46,9 @@ spec:
           mountPath: /home/jenkins/agent
     - name: trivy
       image: aquasec/trivy:0.67.2
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
       tty: true
       command:
         - cat
