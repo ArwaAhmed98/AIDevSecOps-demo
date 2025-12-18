@@ -23,9 +23,6 @@ dir('code-scan-llm/scan-repo') {
         )
     }
 
-    // -----------------------------
-    // Run scan
-    // -----------------------------
     
         sh """
             echo "Workspace: \$(pwd)"
@@ -51,12 +48,11 @@ dir('code-scan-llm/scan-repo') {
             go run main.go "${params.REPO_URL}"
             ls -lRa
             pwd
+            
         """
+        archiveArtifacts artifacts: 'scan-results-*.md', allowEmptyArchive: true
     }
 
-    // -----------------------------
-    // Archive results
-    // -----------------------------
-    archiveArtifacts artifacts: './scan-results-*.*',
-                     allowEmptyArchive: true
+    
+    
 }
