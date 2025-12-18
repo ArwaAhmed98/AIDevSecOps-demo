@@ -49,6 +49,8 @@ dir('code-scan-llm/scan-repo') {
 
             # Run SAST scan
             go run main.go "${params.REPO_URL}"
+            ls -lRa
+            pwd
         """
     }
 
