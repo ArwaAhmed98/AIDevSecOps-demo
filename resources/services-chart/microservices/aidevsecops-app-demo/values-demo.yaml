@@ -4,7 +4,7 @@ release: demo-app
 image:
   repository: ar5678/aidevsecops-app-demo
   pullPolicy: IfNotPresent
-  tag: "53"
+  tag: "54"
 imagePullSecrets: []
 terminationGracePeriodSeconds: 20
 nameOverride: aidevsecops-app-demo
