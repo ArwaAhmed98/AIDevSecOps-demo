@@ -74,7 +74,7 @@ with open("dast_report.txt", "r", encoding="utf-8") as file:
     lines = file.readlines()
 
 with open("variable.txt", "a") as f:
-    print(file_name, file=f)
+    print(file_name, file=f)
 
 with open("dast_report.txt", "w", encoding="utf-8") as file:
     for line in lines:
