@@ -1,7 +1,21 @@
 import requests
 import re
-def list_github_files(owner, repo, folder):
-    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{folder}"
+# def list_github_files(owner, repo, folder):
+#     api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{folder}"
+#     response = requests.get(api_url)
+#     if response.status_code == 200:
+#         files = [item['name'] for item in response.json()]
+#         return files
+#     else:
+#         print("Failed to fetch repository contents.")
+#         return []
+
+# # Example usage
+# files = list_github_files("VFCOM-CICD" , "AIDevSecOps-app-demo", "static")
+# #print(files)
+
+def list_github_files(owner, repo):
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/"
     response = requests.get(api_url)
     if response.status_code == 200:
         files = [item['name'] for item in response.json()]
@@ -11,9 +25,8 @@ def list_github_files(owner, repo, folder):
         return []
 
 # Example usage
-files = list_github_files("VFCOM-CICD" , "AIDevSecOps-app-demo", "static")
+files = list_github_files("Fadi-Farid", "python-web-app")
 #print(files)
-
 
 with open('dast_report.txt', 'r', encoding='utf-8') as file:
      content = file.read()
