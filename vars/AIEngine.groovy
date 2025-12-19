@@ -102,7 +102,7 @@ def call(String AGENT = 'agents/default.yaml') {
                 }
                 steps {
                     script {
-                        container('build') {
+                        container('dast') {
                             raisePR()
                         }
                     }
