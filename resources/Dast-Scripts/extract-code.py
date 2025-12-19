@@ -1,7 +1,7 @@
 import requests
 import re
-def list_github_files(owner, repo):
-    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/"
+def list_github_files(owner, repo, folder):
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{folder}"
     response = requests.get(api_url)
     if response.status_code == 200:
         files = [item['name'] for item in response.json()]
@@ -11,7 +11,7 @@ def list_github_files(owner, repo):
         return []
 
 # Example usage
-files = list_github_files("Fadi-Farid", "Dast-tool")
+files = list_github_files("VFCOM-CICD" , "AIDevSecOps-app-demo", "static")
 #print(files)
 
 
