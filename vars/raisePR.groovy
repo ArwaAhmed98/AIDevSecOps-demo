@@ -12,7 +12,7 @@ def call (){
             )
         }
         sh """
-            python3 ./extract-code.py --repo "${params.REPONAME}"
+            python3 ./extract-code.py
         """
     }   
 
