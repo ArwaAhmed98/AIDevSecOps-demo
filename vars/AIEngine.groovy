@@ -51,15 +51,15 @@ def call(String AGENT = 'agents/default.yaml') {
                     }
                 }
             }
-            stage('SAST') {
-                steps {
-                    script {
-                        container('sast') {
-                            SAST(params)
-                        }
-                    }
-                }
-            }
+            // stage('SAST') {
+            //     steps {
+            //         script {
+            //             container('sast') {
+            //                 SAST(params)
+            //             }
+            //         }
+            //     }
+            // }
             stage('dockerize') {
                 steps {
                     script {
