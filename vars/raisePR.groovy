@@ -12,10 +12,17 @@ def call (){
                 text: libraryResource("${resourceBase}/${file}")
             )
         }
-        sh """
-            python3 ./extract-code.py
-            python3 ./Createpr.py
-        """
+        withCredentials([usernamePassword(
+                                credentialsId: 'GHE',
+                                usernameVariable: 'USER',
+                                passwordVariable: 'PASS'
+                            )]) {
+                sh """
+                    export GITHUB_TOKEN=${PASS}
+                    python3 ./extract-code.py
+                    python3 ./Createpr.py
+                """
+        }
     }   
 
 }
