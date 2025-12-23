@@ -4,9 +4,20 @@ import re
 import subprocess
 
 
-def list_github_files(owner, repo):
+def list_github_files(owner, repo ,GITHUB_TOKEN):
     api_url = f"https://api.github.vodafone.com/repos/{owner}/{repo}/contents/"
-    response = requests.get(api_url)
+
+    token = "your-github-token"
+
+    # Add token to headers
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+
+    response = requests.get(api_url, headers=headers)
+
+
     if response.status_code == 200:
         files = [item['name'] for item in response.json()]
         return files
@@ -42,7 +53,7 @@ def main():
                 #print(Token)
                 
                 # Example usage
-                files = list_github_files("VFCOM-CICD", "AIDevSecOps-app-demo")
+                files = list_github_files("VFCOM-CICD", "AIDevSecOps-app-demo",Token)
                 print(files)
                 
                 

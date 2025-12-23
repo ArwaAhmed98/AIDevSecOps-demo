@@ -14,9 +14,19 @@ import re
 # files = list_github_files("VFCOM-CICD" , "AIDevSecOps-app-demo", "static")
 # #print(files)
 
-def list_github_files(owner, repo):
-    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/"
-    response = requests.get(api_url)
+
+def list_github_files(owner, repo ,GITHUB_TOKEN):
+    api_url = f"https://api.github.vodafone.com/repos/{owner}/{repo}/contents/"
+
+    token = "your-github-token"
+
+    # Add token to headers
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+
+    response = requests.get(api_url, headers=headers)
     if response.status_code == 200:
         files = [item['name'] for item in response.json()]
         return files
@@ -25,7 +35,9 @@ def list_github_files(owner, repo):
         return []
 
 # Example usage
-files = list_github_files("VFCOM-CICD", "AIDevSecOps-app-demo")
+
+Token = os.getenv("GITHUB_TOKEN")
+files = list_github_files("VFCOM-CICD", "AIDevSecOps-app-demo" , Token)
 #print(files)
 
 with open('dast_report.txt', 'r', encoding='utf-8') as file:
