@@ -39,7 +39,7 @@ def RaisePR(GITHUB_TOKEN):
         "base": "main"
     }
 
-    response = requests.post("https://api.github.vodafone.com/repos/VFCOM-CICD/AIDevSecOps-app-demo/pulls", headers=headers, json=data)
+    response = requests.post("https://api.github.com/repos/ArwaAhmed98/AIDevSecOps-app-demo/pulls", headers=headers, json=data)
 
     if response.status_code == 201:
         print("Pull request created successfully.")
@@ -53,7 +53,7 @@ def main():
                 #print(Token)
                 
                 # Example usage
-                files = list_github_files("VFCOM-CICD", "AIDevSecOps-app-demo",Token)
+                files = list_github_files("ArwaAhmed98", "AIDevSecOps-app-demo",Token)
                 print(files)
                 
                 
@@ -110,7 +110,7 @@ def main():
                     for entry in extracted_lines:
                         f.write(entry)
                 print("file_name:",file_name)
-                command=(f'git clone https://{Token}@github.vodafone.com/VFCOM-CICD/AIDevSecOps-app-demo.git')
+                command=(f'git clone https://{Token}@github.com/ArwaAhmed98/AIDevSecOps-app-demo.git')
                 os.system(command)
           
                 commands = f"""
@@ -119,7 +119,7 @@ def main():
                 cp -f ../{file_name} . && \
                 git add . && \
                 git commit -m 'Fix Commit' && \
-                git push https://{Token}@github.vodafone.com/VFCOM-CICD/AIDevSecOps-app-demo.git issue-fix 
+                git push https://{Token}@github.com/ArwaAhmed98/AIDevSecOps-app-demo.git issue-fix 
                 """
                 
                 subprocess.run(commands, shell=True, check=True)
