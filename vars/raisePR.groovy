@@ -18,7 +18,7 @@ def call (){
                                 passwordVariable: 'PASS'
                             )]) {
                 sh """
-                    export GITHUB_TOKEN="${GHE}"
+                    export GITHUB_TOKEN="${PASS}"
                     python3 ./extract-code.py
                     python3 ./Createpr.py
                 """
