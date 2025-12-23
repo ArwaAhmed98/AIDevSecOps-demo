@@ -119,10 +119,11 @@ def main():
                 echo "Raising the PR"
                 cd AIDevSecOps-demo/resources/Dast-Scripts && \
                 git checkout -b issue-fix && \
-                cd ../../../
-                pwd
-                ls -laR
+                cd ../../../  && \
+                pwd  && \
+                ls -laR  && \
                 cp -f {file_name} . && \
+                git config --global user.name "ArwaAhmed98"  && \
                 git add . && \
                 git commit -m 'Fix Commit' && \
                 git push https://{Token}@github.com/ArwaAhmed98/AIDevSecOps-demo.git issue-fix 
