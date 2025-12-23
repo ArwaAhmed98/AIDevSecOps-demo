@@ -17,9 +17,9 @@ import os
 
 
 def list_github_files(owner, repo ,GITHUB_TOKEN):
-    api_url = f"https://api.github.vodafone.com/repos/{owner}/{repo}/contents/"
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/"
 
-    token = "your-github-token"
+    # token = "your-github-token"
 
     # Add token to headers
     headers = {
