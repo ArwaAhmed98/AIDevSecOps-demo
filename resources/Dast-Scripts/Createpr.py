@@ -116,7 +116,7 @@ def main():
                 commands = f"""
                 ls -laR
                 pwd
-
+                echo "Raising the PR"
                 cd AIDevSecOps-demo/resources/Dast-Scripts && \
                 git checkout -b issue-fix && \
                 cp -f ../{file_name} . && \
