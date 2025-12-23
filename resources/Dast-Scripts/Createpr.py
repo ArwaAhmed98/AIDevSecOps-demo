@@ -42,7 +42,7 @@ def main():
                 #print(Token)
                 
                 # Example usage
-                files = list_github_files("Fadi-Farid", "Dast-tool")
+                files = list_github_files("Fadi-Farid", "python-web-app")
                 print(files)
                 
                 
