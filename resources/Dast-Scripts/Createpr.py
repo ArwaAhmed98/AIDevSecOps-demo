@@ -114,7 +114,7 @@ def main():
                 os.system(command)
           
                 commands = f"""
-                cd resDast-tool && \
+                cd resources/Dast-tool && \
                 git checkout -b issue-fix && \
                 cp -f ../{file_name} . && \
                 git add . && \
