@@ -13,7 +13,7 @@ def call(String AGENT = 'agents/default.yaml') {
         string(name: 'OLLAMA_SERVER_URL', defaultValue: 'http://172.22.24.2:8080', description: 'Ollama server URL')
         string(name: 'OUTPUT_FILE', defaultValue: '', description: 'Output file name (optional)')
         string(name: 'REPONAME', defaultValue: 'https://github.com/ArwaAhmed98/AIDevSecOps-app-demo', description: 'Repository name for DAST(e.g., org/repo or repo)')
-        booleanParam(name: 'RUN_RAISEPR', defaultValue: false, description: 'Tick to run RaisePR stage')
+        booleanParam(name: 'RUN_RAISEPR', defaultValue: true, description: 'Tick to run RaisePR stage')
 
         }
         environment {
