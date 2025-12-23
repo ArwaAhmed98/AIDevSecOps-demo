@@ -25,7 +25,7 @@ def list_github_files(owner, repo):
         return []
 
 # Example usage
-files = list_github_files("Fadi-Farid", "python-web-app")
+files = list_github_files("VFCOM-CICD", "AIDevSecOps-app-demo")
 #print(files)
 
 with open('dast_report.txt', 'r', encoding='utf-8') as file:
