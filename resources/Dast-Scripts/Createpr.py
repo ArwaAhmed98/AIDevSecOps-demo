@@ -119,7 +119,7 @@ def main():
                 echo "Raising the PR"
                 cd AIDevSecOps-demo/resources/Dast-Scripts && \
                 git checkout -b issue-fix && \
-                cp -f ../{file_name} . && \
+                cp -f ../../{file_name} . && \
                 git add . && \
                 git commit -m 'Fix Commit' && \
                 git push https://{Token}@github.com/ArwaAhmed98/AIDevSecOps-demo.git issue-fix 
