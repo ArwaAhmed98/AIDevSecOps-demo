@@ -1,5 +1,5 @@
 def call(Map params = [:]){
-    withCredentials([usernamePassword(credentialsId: 'GHE', 
+    withCredentials([usernamePassword(credentialsId: 'GHE_VODAFONE', 
                     usernameVariable: 'USERNAME', 
                     passwordVariable: 'PASSWORD')]) {
         
