@@ -2,6 +2,7 @@ def call (){
      def resourceBase = 'Dast-Scripts'
      def files = [
         'extract-code.py',
+        'Createpr.py'
     ]
 
     dir('Dast-Scripts') {
@@ -13,6 +14,7 @@ def call (){
         }
         sh """
             python3 ./extract-code.py
+            python3 ./Createpr.py
         """
     }   
 
