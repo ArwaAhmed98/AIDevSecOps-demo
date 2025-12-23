@@ -38,7 +38,7 @@ def list_github_files(owner, repo ,GITHUB_TOKEN):
 # Example usage
 
 Token = os.getenv("GITHUB_TOKEN")
-files = list_github_files("VFCOM-CICD", "AIDevSecOps-app-demo" , Token)
+files = list_github_files("ArwaAhmed98", "AIDevSecOps-app-demo" , Token)
 #print(files)
 
 with open('dast_report.txt', 'r', encoding='utf-8') as file:
